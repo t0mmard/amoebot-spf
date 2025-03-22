@@ -20,6 +20,7 @@
 #include "alg/leaderelection.h"
 #include "alg/leaderelectionbyerosion.h"
 #include "alg/shapeformation.h"
+#include "alg/shortpathforest.h"
 
 Algorithm::Algorithm(QString name, QString signature)
     : _name(name),
@@ -61,6 +62,18 @@ QStringList Algorithm::getParameterDefaults() const {
 
 void Algorithm::addParameter(QString parameter, QString defaultValue) {
   _parameters.push_back(std::make_pair(parameter, defaultValue));
+}
+
+ShortestPathForestAlg::ShortestPathForestAlg() : Algorithm("Shortest Path Forest", "shortestpathforest") {
+  addParameter("# Particles", "200");
+};
+
+void ShortestPathForestAlg::instantiate(const int numParticles) {
+  if (numParticles <= 0) {
+    emit log("# particles must be > 0", true);
+  } else {
+    emit setSystem(std::make_shared<ShortestPathForestSystem>(numParticles));
+  }
 }
 
 DiscoDemoAlg::DiscoDemoAlg() : Algorithm("Demo: Disco", "discodemo") {
@@ -420,6 +433,7 @@ AlgorithmList::AlgorithmList() {
   _algorithms.push_back(new LeaderElectionAlg());
   _algorithms.push_back(new LeaderElectionByErosionAlg());
   _algorithms.push_back(new ShapeFormationAlg());
+  _algorithms.push_back(new ShortestPathForestAlg());
 }
 
 AlgorithmList::~AlgorithmList() {

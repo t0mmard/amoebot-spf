@@ -6,64 +6,88 @@
 
 class ShortestPathForestParticle : public AmoebotParticle {
 public:
-    enum class State{};
+    enum class State {
+      Seed,      // The unique particle centering the hexagon.
+      Idle,      // All other particles' initial state.
+      Follower,  // Member of the spanning forest but not on the forming hexagon.
+      Root,      // On the surface of the forming hexagon.
+      Retired    // In the forming hexagon.
+    };
 
-    // Constructs a new particle with a node position for its head, a global
-    // compass direction from its head to its tail (-1 if contracted), an offset
-    // for its local compass, and a system which it belongs to.
-    ShortestPathForestParticle(const Node head, const int globalTailDir,
-                           const int orientation, AmoebotSystem& system,
-                           State state);
+      // Constructs a new contracted particle with a node position for its head, a
+      // particle system it belongs to, and an initial state (either State::Seed or
+      // State::Idle).
+      ShortestPathForestParticle(const Node head, AmoebotSystem& system,const State state);
 
-    // Executes one particle activation.
-    virtual void activate();
+      // Executes one particle activation.
+      void activate() override;
 
-    // Functions for altering a particle's cosmetic appearance; headMarkColor
-    // (respectively, tailMarkColor) returns the color to be used for the ring
-    // drawn around the head (respectively, tail) node. Tail color is not shown
-    // when the particle is contracted. headMarkDir returns the label of the port
-    // on which the black head marker is drawn.
-    virtual int headMarkColor() const;
-    virtual int tailMarkColor() const;
+      // Functions for altering a particle's cosmetic appearance; headMarkColor
+      // (respectively, tailMarkColor) returns the color to be used for the ring
+      // drawn around the head (respectively, tail) node. Tail color is not shown
+      // when the particle is contracted. headMarkDir returns the label of the port
+      // to draw the head marker on.
+      int headMarkColor() const override;
+      int tailMarkColor() const override;
+      int headMarkDir() const override;
 
-    // Returns the string to be displayed when this particle is inspected; used
-    // to snapshot the current values of this particle's memory at runtime.
-    virtual QString inspectionText() const;
+      // Returns the string to be displayed when this particle is inspected; used
+      // to snapshot the current values of this particle's memory at runtime.
+      QString inspectionText() const override;
 
-    // Returns the borderColors and borderPointColors arrays associated with the
-    // particle to draw the boundaries for leader election.
-    virtual std::array<int, 18> borderColors() const;
-    virtual std::array<int, 6> borderPointColors() const;
+      // Gets a reference to the neighboring particle incident to the specified port
+      // label. Crashes if no such particle exists at this label; consider using
+      // hasNbrAtLabel() first if unsure.
+      ShortestPathForestParticle& nbrAtLabel(int label) const;
 
-    // Gets a reference to the neighboring particle incident to the specified port
-    // label. Crashes if no such particle exists at this label; consider using
-    // hasNbrAtLabel() first if unsure.
-    ShortestPathForestParticle& nbrAtLabel(int label) const;
+      // Returns the label of the first port incident to a neighboring particle in
+      // any of the specified states, starting at the (optionally) specified label
+      // and continuing counterclockwise.
+      int labelOfFirstNbrInState(std::initializer_list<State> states,
+                                 int startLabel = 0) const;
 
-    // Returns the label associated with the direction which the next (resp.
-    // previous) agent is according to the cycle that the agent is on (which is
-    // determined by the provided agentDir parameter).
-    int getNextAgentDir(const int agentDir) const;
-    int getPrevAgentDir(const int agentDir) const;
+      // Checks whether this particle has a neighbor in any of the given states.
+      bool hasNbrInState(std::initializer_list<State> states) const;
 
-    // Returns a count of the number of particle neighbors surrounding the calling
-    // particle.
-    int getNumberOfNbrs() const;
+      // Returns the direction from this particle's head to the next position in an
+      // oriented traversal (+1 for clockwise, -1 for counter-clockwise) along the
+      // forming hexagon's surface. See the .cpp implementation for details on why
+      // the usual +1 for counter-clockwise, -1 for clockwise is reversed here.
+      int nextHexagonDir(int orientation) const;
 
-};
+      // Returns true if and only if a seed or retired neighbor is pointing at this
+      // particle with its _dir variable.
+      bool canRetire() const;
+
+      // Returns true if and only if there is a neighbor whose _sParent variable
+      // points at this particle's tail.
+      bool hasTailChild() const;
+
+      // Returns a list of labels that uniquely address any contracted neighbors
+      // whose _sParent variable points at this particle's tail.
+      const std::vector<int> conTailChildLabels() const;
+
+     protected:
+      // Particle memory.
+      State _state;
+      int _parentDir;   // Corresponds to "parent" in paper.
+      int _hexagonDir;  // Corresponds to "dir" in paper.
+
+     private:
+      friend class ShortestPathForestSystem;
+    };
+
 
 class ShortestPathForestSystem : public AmoebotSystem {
 
 public:
- // Constructs a system of EDFHexagonFormationParticles with an optionally
- // specified size (#particles), number of energy source particles, hole
- // probability in [0,1) controlling how sparse the initial configuration is,
- // and the energy distribution framework parameters.
+ // Constructs a system of HexagonFormationParticles with an optionally
+ // specified size (#particles) and hole probability in [0,1) controlling how
+ // sparse the initial configuration is.
  ShortestPathForestSystem(int numParticles = 200);
 
- // Checks whether all particles belong to the energy distribution spanning
- // forest, all particles have fully recharged, and the system has formed a
- // hexagon (i.e., all particles are in ShapeState::Retired).
+ // Checks whether the system has formed a hexagon (i.e., all particles are in
+ // State::Seed or State::Retired).
  bool hasTerminated() const override;
 };
 

@@ -140,7 +140,7 @@ class EDFHexagonFormationSystem : public AmoebotSystem {
   // probability in [0,1) controlling how sparse the initial configuration is,
   // and the energy distribution framework parameters.
   EDFHexagonFormationSystem(int numParticles = 200, int numEnergySources = 1,
-                            double holeProb = 0.2, int capacity = 10,
+                            double holeProb = 0.0, int capacity = 10,
                             int transferRate = 1, int demand = 5);
 
   // Checks whether all particles belong to the energy distribution spanning

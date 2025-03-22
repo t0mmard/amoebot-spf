@@ -48,6 +48,16 @@ class Algorithm : public QObject {
 
 /* Algorithm classes for handling the instantiation of specific algorithms */
 
+
+class ShortestPathForestAlg : public Algorithm {
+  Q_OBJECT
+
+public:
+  ShortestPathForestAlg();
+
+public slots:
+  void instantiate(const int numParticles = 200);
+};
 // Demo: Disco, a first tutorial.
 class DiscoDemoAlg : public Algorithm {
   Q_OBJECT
