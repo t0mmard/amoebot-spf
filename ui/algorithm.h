@@ -135,7 +135,7 @@ class EDFHexagonFormationAlg : public Algorithm {
 
  public slots:
   void instantiate(const int numParticles = 200, const int numEnergySources = 1,
-                   const double holeProb = 0.2, const int capacity = 10,
+                   const double holeProb = 0, const int capacity = 10,
                    const int transferRate = 1, const int demand = 5);
 };
 

@@ -176,7 +176,7 @@ EDFHexagonFormationAlg::EDFHexagonFormationAlg()
     : Algorithm("EDF + Hexagon Formation", "edfhexagonformation") {
   addParameter("# Particles", "200");
   addParameter("# Energy Sources", "1");
-  addParameter("Hole Prob.", "0.2");
+  addParameter("Hole Prob.", "0");
   addParameter("Capacity", "10");
   addParameter("Transfer Rate", "1");
   addParameter("Demand", "5");

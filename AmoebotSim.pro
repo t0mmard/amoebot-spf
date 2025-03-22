@@ -24,6 +24,7 @@ HEADERS += \
     alg/infobjcoating.h \
     alg/leaderelectionbyerosion.h \
     alg/shapeformation.h \
+    alg/shortpathforest.h \
     core/amoebotparticle.h \
     core/amoebotsystem.h \
     core/localparticle.h \
@@ -60,6 +61,7 @@ SOURCES += \
     alg/infobjcoating.cpp \
     alg/leaderelectionbyerosion.cpp \
     alg/shapeformation.cpp \
+    alg/shortpathforest.cpp \
     core/amoebotparticle.cpp \
     core/amoebotsystem.cpp \
     core/localparticle.cpp \
