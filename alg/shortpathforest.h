@@ -89,7 +89,8 @@ public:
  // Checks whether the system has formed a hexagon (i.e., all particles are in
  // State::Seed or State::Retired).
  bool hasTerminated() const override;
+
 };
 
-
+bool dfsPathExists(const std::set<Node>& graph, const Node& start, const Node& target,std::set<Node>& visited);
 #endif // SHORTPATHFOREST_H

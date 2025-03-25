@@ -1,4 +1,5 @@
 #include "alg/shortpathforest.h"
+#include <iostream>
 
 ShortestPathForestParticle::ShortestPathForestParticle(const Node head,
                                                    AmoebotSystem& system,
@@ -195,27 +196,139 @@ const std::vector<int> ShortestPathForestParticle::conTailChildLabels() const {
   return labels;
 }
 
+bool dfsPathExists(const std::set<Node>& graph, const Node& start, const Node& target,std::set<Node>& visited){
+    if (start.x == target.x && start.y == target.y)
+            return true; // Found the target
+
+    visited.insert(start);
+
+    // Possible moves: left, right, up, down (assuming a grid-based movement)
+    std::vector<Node> neighbors = {
+        {start.x + 1, start.y}, {start.x - 1, start.y},
+        {start.x, start.y + 1}, {start.x, start.y - 1},
+        {start.x+1,start.y-1}, {start.x-1, start.y+1}
+    };
+
+    for (const Node& neighbor : neighbors) {
+        if (graph.find(neighbor) != graph.end() && visited.find(neighbor) == visited.end()) {
+            if (dfsPathExists(graph, neighbor, target, visited))
+                return true;
+        }
+    }
+    return false;
+}
+
+ShortestPathForestSystem::ShortestPathForestSystem(int numParticles) {
+    std::set<Node> occupied;
+    occupied.insert(Node(16, 16));
+    int grid_size = 32;
+    std::set<Node> graph;
+
+    for(int i = 0; i<grid_size;i++){
+        for(int j=0; j<grid_size;j++){
+           if(!(i==16 && j==16))
+            graph.insert(Node(i,j));
+        }
+    }
+
+    // Initialize the candidate positions set.
+    std::set<Node> candidates;
+    for (int i = 0; i < 6; ++i) {
+        candidates.insert(Node(16, 16).nodeInDir(i));
+    }
+
+    // Add all other particles using the random tree algorithm.
+    int particlesAdded = 1;
+    while (particlesAdded < numParticles && !candidates.empty()) {
+      // Pick a random candidate node.
+      int randIndex = randInt(0, candidates.size());
+      Node randCand;
+      for (auto cand = candidates.begin(); cand != candidates.end(); ++cand) {
+        if (randIndex == 0) {
+          randCand = *cand;
+          candidates.erase(cand);
+          break;
+        } else {
+          randIndex--;
+        }
+      }
+
+      // Is there any hole if we put the node down?
+        graph.erase(randCand);
+        bool noHole=true;
+
+        for (int i = 0; i < 6; ++i) {
+            std::set<Node> visited;
+            noHole = (noHole && dfsPathExists(graph,randCand.nodeInDir(i),Node(0,0),visited));
+        }
+
+        if(noHole){
+            occupied.insert(randCand);
+            particlesAdded++;
+
+            // Add new candidates.
+            for (int i = 0; i < 6; ++i) {
+              if ((occupied.find(randCand.nodeInDir(i)) == occupied.end()
+                   && randCand.nodeInDir(i).x>0 && randCand.nodeInDir(i).y>0 &&
+                   randCand.nodeInDir(i).x<grid_size-1 && randCand.nodeInDir(i).y < grid_size-1)) {
+                candidates.insert(randCand.nodeInDir(i));
+              }
+            }
+          }
+        else{
+            graph.insert(randCand);
+        }
+        }
+
+    for (const auto& node : occupied) {
+
+       insert(new ShortestPathForestParticle(node, *this,
+                                           ShortestPathForestParticle::State::Seed));
+    }
+
+}
+
+
+/*
 ShortestPathForestSystem::ShortestPathForestSystem(int numParticles) {
   // Insert the shape formation seed at (0,0).
   std::set<Node> occupied;
-  for(int i = 0;i<30;i++){
-      for(int j=0;j<30;j++){
-          insert(new ShortestPathForestParticle(Node(i, j), *this,
-                                              ShortestPathForestParticle::State::Seed));
-          occupied.insert(Node(i, j));
+  std::set<Node> graph;
+  std::set<Node> candidates;
+  int grid_size = 30;
+  int neighboursCount[grid_size+2][grid_size+2];
+  for(int i = 0;i<grid_size;i++){
+      for(int j=0;j<grid_size;j++){
+
+          occupied.insert(Node(i+1,j+1));
+          if(i == grid_size-1 || i == 0 || j==0 || j == grid_size-1){
+              candidates.insert(Node(i+1,j+1));
+          }
+          else{
+              neighboursCount[i+2][j+2] = 6;
+          }
+          if((i == grid_size-1 || i == 0 ) && (j==0 || j == grid_size-1)){
+              neighboursCount[i+2][j+2] = 2;
+          }
+          else if((i == grid_size-1 || i == 0 ) || (j==0 || j == grid_size-1)){
+              neighboursCount[i+2][j+2] = 3;
+          }
       }
   }
-
-/*
-  // Initialize the candidate positions set.
-  std::set<Node> candidates;
-  for (int i = 0; i < 6; ++i) {
-    candidates.insert(Node(0, 0).nodeInDir(i));
+  for(int i=0;i<grid_size+2;i++){
+      neighboursCount[0][i]=6;
+      neighboursCount[i][0] = 6;
+      neighboursCount[grid_size+1][i]=6;
+      neighboursCount[i][grid_size+1]=6;
   }
 
+
+
+
   // Add all other particles using the random tree algorithm.
-  int particlesAdded = 1;
-  while (particlesAdded < numParticles && !candidates.empty()) {
+  int particlesAdded = grid_size *grid_size;
+  while (particlesAdded > numParticles || candidates.size()==0) {
+      //std::cout<< particlesAdded ;
     // Pick a random candidate node.
     int randIndex = randInt(0, candidates.size());
     Node randCand;
@@ -223,28 +336,52 @@ ShortestPathForestSystem::ShortestPathForestSystem(int numParticles) {
       if (randIndex == 0) {
         randCand = *cand;
         candidates.erase(cand);
+
+
         break;
       } else {
         randIndex--;
       }
     }
 
-    // With probability 1 - holeProb, add a new particle at the candidate node.
-      insert(new ShortestPathForestParticle(
-          randCand, *this, ShortestPathForestParticle::State::Idle));
-      occupied.insert(randCand);
-      particlesAdded++;
 
-      // Add new candidates.
-      for (int i = 0; i < 6; ++i) {
-        if (occupied.find(randCand.nodeInDir(i)) == occupied.end()) {
-          candidates.insert(randCand.nodeInDir(i));
+    if ((neighboursCount[randCand.x+1][randCand.y-1] == 1 ||
+        neighboursCount[randCand.x+1][randCand.y] == 1 ||
+        neighboursCount[randCand.x][randCand.y-1] == 1 ||
+        neighboursCount[randCand.x][randCand.y+1] == 1 ||
+        neighboursCount[randCand.x-1][randCand.y] == 1 ||
+        neighboursCount[randCand.x-1][randCand.y+1] == 1 )) {
+        particlesAdded--;
+    }else {
+        neighboursCount[randCand.x+1][randCand.y-1] -= 1;
+        neighboursCount[randCand.x+1][randCand.y] -= 1;
+        neighboursCount[randCand.x][randCand.y-1] -= 1;
+        neighboursCount[randCand.x][randCand.y+1] -= 1;
+        neighboursCount[randCand.x-1][randCand.y] -= 1;
+        neighboursCount[randCand.x-1][randCand.y+1] -= 1;
+        occupied.erase(randCand);
+        graph.insert(Node(randCand.x,randCand.y));
+        particlesAdded--;
+        // Add new candidates.
+        for (int i = 0; i < 6; ++i) {
+            if (occupied.find(randCand.nodeInDir(i)) != occupied.end()
+                    && randCand.nodeInDir(i).x>0 && randCand.nodeInDir(i).y>0 && randCand.nodeInDir(i).x<=grid_size && randCand.nodeInDir(i).y <= grid_size) {
+              candidates.insert(randCand.nodeInDir(i));
+            }
+          }
+
+
         }
-      }
+    }
 
-  }*/
-}
+    for (const auto& node : graph) {
 
+       insert(new ShortestPathForestParticle(node, *this,
+                                           ShortestPathForestParticle::State::Seed));
+    }
+ }
+
+*/
 bool ShortestPathForestSystem::hasTerminated() const {
   for (auto p : particles) {
     auto hp = dynamic_cast<ShortestPathForestParticle*>(p);
