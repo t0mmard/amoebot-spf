@@ -13,6 +13,7 @@ HEADERS += \
     alg/demo/discodemo.h \
     alg/demo/dynamicdemo.h \
     alg/demo/metricsdemo.h \
+    alg/demo/portalgraph.h \
     alg/demo/tokendemo.h \
     alg/aggregation.h \
     alg/compression.h \
@@ -50,6 +51,7 @@ SOURCES += \
     alg/demo/discodemo.cpp \
     alg/demo/dynamicdemo.cpp \
     alg/demo/metricsdemo.cpp \
+    alg/demo/portalgraph.cpp \
     alg/demo/tokendemo.cpp \
     alg/aggregation.cpp \
     alg/compression.cpp \

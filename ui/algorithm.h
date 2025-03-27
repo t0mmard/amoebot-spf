@@ -46,6 +46,25 @@ class Algorithm : public QObject {
   std::vector<std::pair<QString, QString>> _parameters;
 };
 
+//My algorithms
+
+
+// PortalGraph builder
+class PortalGraphAlg : public Algorithm {
+  Q_OBJECT
+
+ public:
+  PortalGraphAlg();
+
+ public slots:
+  void instantiate(const int numParticles = 30, const int counterMax = 5);
+};
+
+
+
+
+
+
 /* Algorithm classes for handling the instantiation of specific algorithms */
 
 

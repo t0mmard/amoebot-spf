@@ -21,6 +21,7 @@
 #include "alg/leaderelectionbyerosion.h"
 #include "alg/shapeformation.h"
 #include "alg/shortpathforest.h"
+#include "alg/demo/portalgraph.h"
 
 Algorithm::Algorithm(QString name, QString signature)
     : _name(name),
@@ -64,6 +65,10 @@ void Algorithm::addParameter(QString parameter, QString defaultValue) {
   _parameters.push_back(std::make_pair(parameter, defaultValue));
 }
 
+
+// ///////////////////////////////////////////////////////////////////////////
+// My algorithms
+
 ShortestPathForestAlg::ShortestPathForestAlg() : Algorithm("Shortest Path Forest", "shortestpathforest") {
   addParameter("# Particles", "200");
 };
@@ -75,6 +80,24 @@ void ShortestPathForestAlg::instantiate(const int numParticles) {
     emit setSystem(std::make_shared<ShortestPathForestSystem>(numParticles));
   }
 }
+
+PortalGraphAlg::PortalGraphAlg() : Algorithm("PortalGraph", "portalgraph") {
+  addParameter("# Particles", "30");
+  addParameter("Counter Max", "5");
+};
+
+void PortalGraphAlg::instantiate(const int numParticles, const int counterMax) {
+  if (numParticles <= 0) {
+    emit log("# particles must be > 0", true);
+  } else if (counterMax <= 0) {
+    emit log("counterMax must be > 0", true);
+  } else {
+    emit setSystem(std::make_shared<PortalGraphSystem>(numParticles));
+  }
+}
+
+
+// ////////////////////////////////////////////////////////////////////////
 
 DiscoDemoAlg::DiscoDemoAlg() : Algorithm("Demo: Disco", "discodemo") {
   addParameter("# Particles", "30");
@@ -414,6 +437,10 @@ void ShapeFormationAlg::instantiate(const int numParticles,
 }
 
 AlgorithmList::AlgorithmList() {
+  // //////////////////////////////////////////////////
+  // My algorithms
+  _algorithms.push_back(new PortalGraphAlg());
+
   // Demo algorithms.
   _algorithms.push_back(new DiscoDemoAlg());
   _algorithms.push_back(new MetricsDemoAlg());

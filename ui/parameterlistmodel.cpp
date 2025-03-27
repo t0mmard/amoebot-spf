@@ -77,7 +77,13 @@ void ParameterListModel::createSystem(QString algName) {
   if (signature == "discodemo") {
     dynamic_cast<DiscoDemoAlg*>(alg)->
         instantiate(params[0].toInt(), params[1].toInt());
-  } else if (signature == "metricsdemo") {
+  }
+  // My algorithms
+  else if (signature == "portalgraph") {
+    dynamic_cast<PortalGraphAlg*>(alg)->
+        instantiate(params[0].toInt(), params[1].toInt());
+  }
+  else if (signature == "metricsdemo") {
     dynamic_cast<MetricsDemoAlg*>(alg)->
         instantiate(params[0].toInt(), params[1].toInt());
   }else if (signature == "shortestpathforest") {
