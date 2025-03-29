@@ -98,7 +98,7 @@ void PortalGraphParticle::activate()
 
 void PortalGraphParticle::initializePortalGraph() {
     createPortalGraph(Axis::X, xAxis, xSideA, xSideB, WEST);
-    createPortalGraph(Axis::Y, yAxis, ySideA, ySideB, SOUTHWEST);
+    createPortalGraph(Axis::Y, yAxis, ySideA, ySideB, NORTHEAST);
     createPortalGraph(Axis::Z, zAxis, zSideA, zSideB, SOUTHEAST);
     portalSet = true;
 }
