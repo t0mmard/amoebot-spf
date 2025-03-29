@@ -14,8 +14,8 @@ PortalGraphParticle::Direction xSideA[2] = {PortalGraphParticle::NORTHWEST, Port
 PortalGraphParticle::Direction xSideB[2] = {PortalGraphParticle::SOUTHWEST, PortalGraphParticle::SOUTHEAST};
 //y portal
 PortalGraphParticle::Direction yAxis[2] = {PortalGraphParticle::SOUTHWEST, PortalGraphParticle::NORTHEAST};
-PortalGraphParticle::Direction ySideA[2] = {PortalGraphParticle::WEST, PortalGraphParticle::NORTHWEST};
-PortalGraphParticle::Direction ySideB[2] = {PortalGraphParticle::SOUTHEAST, PortalGraphParticle::EAST};
+PortalGraphParticle::Direction ySideA[2] = {PortalGraphParticle::NORTHWEST, PortalGraphParticle::WEST};
+PortalGraphParticle::Direction ySideB[2] = {PortalGraphParticle::EAST, PortalGraphParticle::SOUTHEAST};
 //z portal
 PortalGraphParticle::Direction zAxis[2] = {PortalGraphParticle::SOUTHEAST, PortalGraphParticle::NORTHWEST};
 PortalGraphParticle::Direction zSideA[2] = {PortalGraphParticle::SOUTHWEST, PortalGraphParticle::WEST};
