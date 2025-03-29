@@ -83,17 +83,11 @@ void ShortestPathForestAlg::instantiate(const int numParticles) {
 
 PortalGraphAlg::PortalGraphAlg() : Algorithm("PortalGraph", "portalgraph") {
   addParameter("# Particles", "30");
-  addParameter("Counter Max", "5");
+  addParameter("Portal Graph Coloring", "");
 };
 
-void PortalGraphAlg::instantiate(const int numParticles, const int counterMax) {
-  if (numParticles <= 0) {
-    emit log("# particles must be > 0", true);
-  } else if (counterMax <= 0) {
-    emit log("counterMax must be > 0", true);
-  } else {
-    emit setSystem(std::make_shared<PortalGraphSystem>(numParticles));
-  }
+void PortalGraphAlg::instantiate(const int numParticles, const std::string portalGraph) {
+  emit setSystem(std::make_shared<PortalGraphSystem>(numParticles, portalGraph));
 }
 
 

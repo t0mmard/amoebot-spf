@@ -50,41 +50,76 @@ QString stringifyDirectionVector(const std::vector<PortalGraphParticle::Directio
     return result;
 }
 
+unsigned int getColor(int value, int limit) {
+    value = std::min(std::max(value, 0), limit);
+
+    int red = static_cast<int>((value / static_cast<double>(limit)) * 255);
+    int green = static_cast<int>((1.0 - (value / static_cast<double>(limit))) * 255);
+
+    return (red << 16) | (green << 8);
+}
 
 
 PortalGraphParticle::PortalGraphParticle(const Node &head,
-                                         const int orientation, const bool isLeader,
+                                         const int orientation,
+                                         const bool isLeader,
+                                         const std::string portalGraph,
                                          AmoebotSystem &system)
     : AmoebotParticle(head, -1, orientation, system)
 {
-    _state = getRandColor(isLeader);
+    _portalGraph = portalGraph;
     leader = isLeader;
-    xPascDone = false;
-    yPascDone = false;
-    zPascDone = false;
-    portalSet = false;
-    xDistanceFromRoot = 0;
-    yDistanceFromRoot = 0;
-    zDistanceFromRoot = 0;
+    setPascDone(Axis::X, false);
+    setPascDone(Axis::Y, false);
+    setPascDone(Axis::Z, false);
+
+    setDistanceFromRoot(Axis::X, 0);
+    setDistanceFromRoot(Axis::Y, 0);
+    setDistanceFromRoot(Axis::Z, 0);
+
+    _portalDirections[Axis::X] = std::vector<Direction>();
+    _portalDirections[Axis::Y] = std::vector<Direction>();
+    _portalDirections[Axis::Z] = std::vector<Direction>();
+
+    getPortalDirections(Axis::X).push_back(Direction::EAST);
 }
 
-void PortalGraphParticle::createPortalGraph(std::vector<Direction>& portalDirections, Direction axis[2], Direction sideA[2], Direction sideB[2], Direction boundaryDirection) {
+
+void PortalGraphParticle::activate()
+{
+    if (!portalSet) { // select neighbours for all portal graphs
+        initializePortalGraph();
+    } else if (!allPascDone()){ //propagate pasc distance on each portal graph
+        calculatePasc();
+    } else {
+        chooseParent();
+    }
+}
+
+void PortalGraphParticle::initializePortalGraph() {
+    createPortalGraph(Axis::X, xAxis, xSideA, xSideB, WEST);
+    createPortalGraph(Axis::Y, yAxis, ySideA, ySideB, SOUTHWEST);
+    createPortalGraph(Axis::Z, zAxis, zSideA, zSideB, SOUTHEAST);
+    portalSet = true;
+}
+
+void PortalGraphParticle::createPortalGraph(Axis axis, Direction portalAxis[2], Direction sideA[2], Direction sideB[2], Direction boundaryDirection) {
     //add main axis
     for(int i = 0; i< 2; ++i) {
-        Direction dir = axis[i];
+        Direction dir = portalAxis[i];
         if(hasNbrAtLabel(dir)) {
-            portalDirections.push_back(dir);
+            pushPortalDirections(axis, dir);
         }
     }
 
     //return if there is an amoebot in the boundaryDirection (no parallel connection needed)
-    if (std::find(portalDirections.begin(), portalDirections.end(), boundaryDirection) != portalDirections.end()) {
+    if (neighbourExists(axis, boundaryDirection)) {
         //we check if the parallel amoebots are on the boundary, if so we connect them
         if (!hasNbrAtLabel(sideA[0]) && hasNbrAtLabel(sideA[1])) {
-            portalDirections.push_back(sideA[1]);
+            pushPortalDirections(axis, sideA[1]);
         }
         if (!hasNbrAtLabel(sideB[0]) && hasNbrAtLabel(sideB[1])) {
-            portalDirections.push_back(sideB[1]);
+            pushPortalDirections(axis, sideB[1]);
         }
         return;
     }
@@ -94,7 +129,7 @@ void PortalGraphParticle::createPortalGraph(std::vector<Direction>& portalDirect
     for(int i = 0; i< 2; ++i) {
         Direction dir = sideA[i];
         if(hasNbrAtLabel(dir)) {
-            portalDirections.push_back(dir);
+            pushPortalDirections(axis, dir);
             break;
         }
     }
@@ -102,74 +137,49 @@ void PortalGraphParticle::createPortalGraph(std::vector<Direction>& portalDirect
     for(int i = 0; i< 2; ++i) {
         Direction dir = sideB[i];
         if(hasNbrAtLabel(dir)) {
-            portalDirections.push_back(dir);
+            pushPortalDirections(axis, dir);
             break;
         }
     }
 }
 
-void PortalGraphParticle::activate()
+
+void PortalGraphParticle::calculatePasc()
 {
-    if (!portalSet) {
-        createPortalGraph(portalXDirections, xAxis, xSideA, xSideB, WEST);
-        createPortalGraph(portalYDirections, yAxis, ySideA, ySideB, SOUTHWEST);
-        createPortalGraph(portalZDirections, xAxis, xSideA, xSideB, SOUTHEAST);
-        portalSet = true;
-    } else { //set amoebot distance on different axis'
-        if (leader && !xPascDone && !yPascDone && !zPascDone) {
-            for (auto dir : portalXDirections) {
-                auto nbr = nbrAtLabel(dir);
-                if (nbr.xDistanceFromRoot == 0) {
-                    nbrAtLabel(dir).xDistanceFromRoot = xDistanceFromRoot + 1;
-                }
-            }
-            for (auto dir : portalYDirections) {
-                auto nbr = nbrAtLabel(dir);
-                if (nbr.yDistanceFromRoot == 0) {
-                    nbrAtLabel(dir).yDistanceFromRoot = yDistanceFromRoot + 1;
-                }
-            }
-            for (auto dir : portalZDirections) {
-                auto nbr = nbrAtLabel(dir);
-                if (nbr.zDistanceFromRoot == 0) {
-                    nbrAtLabel(dir).zDistanceFromRoot = zDistanceFromRoot + 1;
-                }
-            }
-            xPascDone = true;
-            yPascDone = true;
-            zPascDone = true;
-        }
+    if (leader && !allPascDone()) {
+        propagateDistance(Axis::X);
+        propagateDistance(Axis::Y);
+        propagateDistance(Axis::Z);
+    }
+    if (getDistanceFromRoot(Axis::X) != 0 && !isPascDone(Axis::X)) {
+        propagateDistance(Axis::X);
+    }
 
-        if (xDistanceFromRoot != 0 && !xPascDone) {
-            for (auto dir : portalXDirections) {
-                auto nbr = nbrAtLabel(dir);
-                if (nbr.xDistanceFromRoot == 0 && !nbr.leader) {
-                    nbrAtLabel(dir).xDistanceFromRoot = xDistanceFromRoot + 1;
-                }
-            }
-            xPascDone = true;
-        }
+    if (getDistanceFromRoot(Axis::Y) != 0 && !isPascDone(Axis::Y)) {
+        propagateDistance(Axis::Y);
+    }
 
-        if (yDistanceFromRoot != 0 && !yPascDone) {
-            for (auto dir : portalYDirections) {
-                auto nbr = nbrAtLabel(dir);
-                if (nbr.yDistanceFromRoot == 0 && !nbr.leader) {
-                    nbrAtLabel(dir).yDistanceFromRoot = yDistanceFromRoot + 1;
-                }
-            }
-            yPascDone = true;
-        }
+    if (getDistanceFromRoot(Axis::Z) != 0 && !isPascDone(Axis::Z)) {
+        propagateDistance(Axis::Z);
+    }
+}
 
-        if (zDistanceFromRoot != 0 && !zPascDone) {
-            for (auto dir : portalZDirections) {
-                auto nbr = nbrAtLabel(dir);
-                if (nbr.zDistanceFromRoot == 0 && !nbr.leader) {
-                    nbrAtLabel(dir).zDistanceFromRoot = zDistanceFromRoot + 1;
-                }
-            }
-            zPascDone = true;
+
+void PortalGraphParticle::propagateDistance(Axis axis)
+{
+    int i = 0;
+    for (auto dir : getPortalDirections(axis)) {
+        if (nbrAtLabel(dir).getDistanceFromRoot(axis) == 0 && !nbrAtLabel(dir).leader) {
+            int distanceFromRoot = getDistanceFromRoot(axis) + 1;
+            nbrAtLabel(dir).setDistanceFromRoot(axis, distanceFromRoot);
         }
     }
+    setPascDone(axis, true);
+}
+
+void PortalGraphParticle::chooseParent() {
+    Axis closestPortal = getPortalClosestToRoot();
+    _headMarkDir = getDirCloserToRoot(closestPortal);
 }
 
 PortalGraphParticle& PortalGraphParticle::nbrAtLabel(int label) const {
@@ -179,15 +189,23 @@ PortalGraphParticle& PortalGraphParticle::nbrAtLabel(int label) const {
 
 int PortalGraphParticle::headMarkColor() const
 {
-    switch (_state)
-    {
-    case State::Red:
-        return 0xff0000;
-    case State::Nothing:
-        return -1;
+    if (leader) {
+      return 0x0000FF;
+    } else if (allPascDone()) {
+        if (_portalGraph == "x") {
+            return getColor(getDistanceFromRoot(Axis::X), 30);
+        } else if (_portalGraph == "y") {
+            return getColor(getDistanceFromRoot(Axis::Y), 30);
+        } else if (_portalGraph == "z") {
+            return getColor(getDistanceFromRoot(Axis::Z), 30);
+        }
     }
 
     return -1;
+}
+
+int PortalGraphParticle::headMarkDir() const {
+    return _headMarkDir;
 }
 
 int PortalGraphParticle::tailMarkColor() const
@@ -201,38 +219,28 @@ QString PortalGraphParticle::inspectionText() const
 {
     QString text;
     text += "X portal graph neighbours: ";
-    text += stringifyDirectionVector(portalXDirections);
+    text += stringifyDirectionVector(getPortalDirections(Axis::X));
     text += "\n";
     text += "Y portal graph neighbours: ";
-    text += stringifyDirectionVector(portalYDirections);
+    text += stringifyDirectionVector(getPortalDirections(Axis::Y));
     text += "\n";
     text += "Z portal graph neighbours: ";
-    text += stringifyDirectionVector(portalZDirections);
+    text += stringifyDirectionVector(getPortalDirections(Axis::Z));
     text += "\n";
     text += "X distance from root: ";
-    text += QString::number(xDistanceFromRoot);
+    text += QString::number(getDistanceFromRoot(Axis::X));
     text += "\n";
     text += "Y distance from root: ";
-    text += QString::number(yDistanceFromRoot);
+    text += QString::number(getDistanceFromRoot(Axis::Y));
     text += "\n";
     text += "Z distance from root: ";
-    text += QString::number(zDistanceFromRoot);
+    text += QString::number(getDistanceFromRoot(Axis::Z));
     text += "\n";
 
     return text;
 }
 
-PortalGraphParticle::State PortalGraphParticle::getRandColor(const bool leader) const
-{
-    // Select colours that are in the portal graph
-    if (leader)
-    {
-        return static_cast<State>(0);
-    }
-    return static_cast<State>(1);
-}
-
-PortalGraphSystem::PortalGraphSystem(int numParticles)
+PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph)
 {
     std::set<Node> occupied;
     occupied.insert(Node(16, 16));
@@ -313,7 +321,7 @@ PortalGraphSystem::PortalGraphSystem(int numParticles)
     for (const auto &node : occupied)
     {
 
-        insert(new PortalGraphParticle(node, 0, i == leader, *this));
+        insert(new PortalGraphParticle(node, 0, i == leader, portalGraph, *this));
         ++i;
     }
 }

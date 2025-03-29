@@ -57,7 +57,7 @@ class PortalGraphAlg : public Algorithm {
   PortalGraphAlg();
 
  public slots:
-  void instantiate(const int numParticles = 30, const int counterMax = 5);
+  void instantiate(const int numParticles = 30, const std::string portalGraph = "");
 };
 
 
