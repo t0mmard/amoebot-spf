@@ -40,8 +40,6 @@ QString stringifyDirectionVector(const std::vector<Direction>& vec) {
 }
 
 unsigned int getColor(int value, int limit) {
-    value = std::min(std::max(value, 0), limit);
-
     int red = static_cast<int>((value / static_cast<double>(limit)) * 255);
     int green = static_cast<int>((1.0 - (value / static_cast<double>(limit))) * 255);
 
@@ -242,6 +240,9 @@ QString PortalGraphParticle::inspectionText() const
 
 PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph)
 {
+    //For visualization only
+    maxDistance = 0;
+    //For visualization only
     std::set<Node> occupied;
     occupied.insert(Node(16, 16));
     int grid_size = 32;
