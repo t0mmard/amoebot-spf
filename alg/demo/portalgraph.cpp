@@ -8,6 +8,9 @@
 #include <string>
 #include <cstdlib>
 
+//for visualization only
+int maxDistance = 0;
+
 //helper functions
 bool contains(const std::vector<int>& vec, int num) {
     return std::find(vec.begin(), vec.end(), num) != vec.end();
@@ -159,14 +162,16 @@ void PortalGraphParticle::chooseParent() {
     if (_leader || !_neighboursSet || !neighboursFinished() || parent != NONE) {
         return;
     }
+    // For visualization only
+    int distance = (getPortalDistanceFromRoot(X) + getPortalDistanceFromRoot(Y) + getPortalDistanceFromRoot(Z)) / 2;
+    if (distance > maxDistance) maxDistance = distance;
+    //For visualization only
     for (int dir = EAST; dir <= SOUTHEAST; dir += 1) {
         if (hasNbrAtLabel(dir)) {
-            int candidate = (getPortalDistanceFromRoot(Axis::X) - nbrAtLabel(dir).getPortalDistanceFromRoot(Axis::X))
-                    + (getPortalDistanceFromRoot(Axis::Y) - nbrAtLabel(dir).getPortalDistanceFromRoot(Axis::Y))
-                    + (getPortalDistanceFromRoot(Axis::Z) - nbrAtLabel(dir).getPortalDistanceFromRoot(Axis::Z));
-            std::cout << "candidate itt is: " << candidate << std::endl;
+            int candidate = (getPortalDistanceFromRoot(X) - nbrAtLabel(dir).getPortalDistanceFromRoot(X))
+                    + (getPortalDistanceFromRoot(Y) - nbrAtLabel(dir).getPortalDistanceFromRoot(Y))
+                    + (getPortalDistanceFromRoot(Z) - nbrAtLabel(dir).getPortalDistanceFromRoot(Z));
             if (candidate == 2) {
-                std::cout << "candidate" << candidate << std::endl;
                 parent = static_cast<Direction>(dir);
                 _headMarkDir = dir;
             }
@@ -184,8 +189,9 @@ int PortalGraphParticle::headMarkColor() const
 {
     if (_leader) {
       return 0x0000FF;
-    } else if (neighboursFinished()) {
-        return getColor(((getPortalDistanceFromRoot(X) + getPortalDistanceFromRoot(Y) + getPortalDistanceFromRoot(Z))/3), 20);
+    } else if (distancesSet()) {
+        std::cout << "md: " << maxDistance << std::endl;
+        return getColor(((getPortalDistanceFromRoot(X) + getPortalDistanceFromRoot(Y) + getPortalDistanceFromRoot(Z))/2), maxDistance);
     } else {
         return 0xEDFF8A;
     }
