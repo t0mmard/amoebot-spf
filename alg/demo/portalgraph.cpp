@@ -190,7 +190,6 @@ int PortalGraphParticle::headMarkColor() const
     if (_leader) {
       return 0x0000FF;
     } else if (distancesSet()) {
-        std::cout << "md: " << maxDistance << std::endl;
         return getColor(((getPortalDistanceFromRoot(X) + getPortalDistanceFromRoot(Y) + getPortalDistanceFromRoot(Z))/2), maxDistance);
     } else {
         return 0xEDFF8A;
