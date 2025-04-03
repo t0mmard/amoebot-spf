@@ -20,6 +20,7 @@
 #include <vector>
 #include <map>
 #include <limits>
+
 enum Axis {
     X=0,
     Y=1,
@@ -163,6 +164,53 @@ class PortalGraphParticle : public AmoebotParticle {
       return _distanceFromRoot.at(axis);
   }*/
 
+  bool operator<(const PortalGraphParticle& other) const {
+          // Compare based on x-coordinate first
+          if (head.x != other.head.x) {
+              return head.x < other.head.x;
+
+          }
+          // If x's are equal, compare based on y-coordinate
+          return head.y < other.head.y;
+      }
+
+  void eulerTour(int value,const std::set<PortalGraphParticle>& targets,Direction movedirection,Axis axis){
+      if (getOutedge(movedirection)!=-1){
+          setOutedge(movedirection,value);
+          if(targets.count(nbrAtLabel(static_cast<int>(movedirection))) > 0 ){ // its in target
+             value += 1;
+          }
+          nbrAtLabel(static_cast<int>(movedirection)).setInedge((static_cast<int>(movedirection)+3) % 6,value);
+          // megkeressük a helyes irányt = direction
+          Direction direction;
+          int potentialdirection[6]={((movedirection+3)-1 + 6) % 6,((movedirection+3)-2 + 6) % 6,((movedirection+3)-3 + 6) % 6,
+                  ((movedirection+3)-4 + 6) % 6,((movedirection+3)-5 + 6) % 6,((movedirection+3)-6 + 6) % 6};
+          for(int pot : potentialdirection){
+            if (neighbourExists(axis,static_cast<Direction>(pot))){
+                  direction =static_cast<Direction>(pot);
+          }
+      }
+          nbrAtLabel(movedirection).eulerTour(value,targets,direction,axis);
+      }
+
+  }
+
+  int getInedge(int index){
+      return inedge[index];
+  }
+
+  void setInedge(int index,int value){
+      inedge[index]= value;
+  }
+
+  int getOutedge(int index){
+      return outedge[index];
+  }
+
+  void setOutedge(int index,int value){
+      outedge[index]= value;
+  }
+
   PortalGraphParticle(const Node& head, const int orientation, const bool _leader, std::string portalGraph, AmoebotSystem& system);
   void activate() override;
 
@@ -184,6 +232,9 @@ class PortalGraphParticle : public AmoebotParticle {
 
   bool _leader; //the leader / root amoebot
   bool _neighboursSet = false; //has gone through distance propagation
+
+  int inedge[6] = {-1,-1,-1,-1,-1,-1};
+  int outedge[6] = {-1,-1,-1,-1,-1,-1};
 
   void calculatePortalDistance();
   void chooseParent();

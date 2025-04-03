@@ -238,6 +238,7 @@ QString PortalGraphParticle::inspectionText() const
     return text;
 }
 
+
 PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph)
 {
     //For visualization only
