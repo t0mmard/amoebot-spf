@@ -174,6 +174,20 @@ class PortalGraphParticle : public AmoebotParticle {
           return head.y < other.head.y;
       }
 
+  void startEulerTour(const std::set<PortalGraphParticle>& targets,Axis axis){
+      Direction direction;
+      int potentialdirection[6]={1,0,5,4,3,2};
+      for(int pot : potentialdirection){
+        if (neighbourExists(axis,static_cast<Direction>(pot))){
+              direction =static_cast<Direction>((pot));
+              break;
+      }
+      }
+        setOutedge(direction,0);
+        direction = static_cast<Direction>((static_cast<int>(direction)+3)%6);
+        nbrAtLabel(direction).eulerTour(0,targets,direction,axis);
+  }
+
   void eulerTour(int value,const std::set<PortalGraphParticle>& targets,Direction movedirection,Axis axis){
       if (getOutedge(movedirection)!=-1){
           setOutedge(movedirection,value);
@@ -188,6 +202,7 @@ class PortalGraphParticle : public AmoebotParticle {
           for(int pot : potentialdirection){
             if (neighbourExists(axis,static_cast<Direction>(pot))){
                   direction =static_cast<Direction>(pot);
+                  break ;
           }
       }
           nbrAtLabel(movedirection).eulerTour(value,targets,direction,axis);
