@@ -210,6 +210,24 @@ class PortalGraphParticle : public AmoebotParticle {
 
   }
 
+  void rootPruning(const std::set<PortalGraphParticle>& targets,Axis axis) {
+      startEulerTour(targets,axis);
+      for(unsigned int i=0; i < system.size();i++){
+          const Particle& p = system.at(i);
+          dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p)).noTargetinPath();
+      } //With no target in path we can cut all unimportant part it can be used this for cycle in somewhere else andnot use this function
+
+
+  }
+  void noTargetinPath(){
+      for(int i=0;i<6;i++){
+          if(inedge[i] == outedge[i]) {
+              inedge[i] = -1;
+              outedge[i] = -1; // this means the we cut the edges between in this
+          }
+      }
+  }
+
   int getInedge(int index){
       return inedge[index];
   }

@@ -231,6 +231,12 @@ QString PortalGraphParticle::inspectionText() const
     text += "\n";
     text += "\n";
 
+    text += "Shortest path length: ";
+    text += QString::number((getPortalDistanceFromRoot(Axis::X)+getPortalDistanceFromRoot(Axis::Y)+getPortalDistanceFromRoot(Axis::Z))/2);
+    text += "\n";
+    text += "\n";
+
+
     text += "Parent amoebot: ";
     text += directionToString(parent);
     text += "\n";
