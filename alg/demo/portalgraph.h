@@ -174,7 +174,36 @@ class PortalGraphParticle : public AmoebotParticle {
           return head.y < other.head.y;
       }
 
+
+  QString directionToString2(Direction dir) {
+      switch (dir) {
+          case WEST: return "WEST";
+          case EAST: return "EAST";
+          case SOUTHWEST: return "SOUTHWEST";
+          case NORTHEAST: return "NORTHEAST";
+          case NORTHWEST: return "NORTHWEST";
+          case SOUTHEAST: return "SOUTHEAST";
+          default: return "Unknown";
+      }
+  }
+
+  QString stringifyDirectionVector2(const std::vector<Direction>& vec) {
+      QString result = "";
+      for (size_t i = 0; i < vec.size(); ++i) {
+          result += directionToString2(vec[i]);
+          if (i != vec.size() - 1) {
+              result += ", ";
+          }
+      }
+      return result;
+  }
+
   void startEulerTour(Axis axis){
+      if(eulerDone || counter > 1){
+          counter--;
+          return;
+      }
+      eulerDone = true;
       Direction direction;
       Direction nbrDirection;
       int potentialdirection[6]={0,1,2,3,4,5};
@@ -186,7 +215,6 @@ class PortalGraphParticle : public AmoebotParticle {
       }
       setOutedge(direction,0);
       nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
-      nbrAtLabel(direction).setInedge(nbrDirection, 0);
       nbrAtLabel(direction).eulerTour(0, nbrDirection,axis);
   }
 
@@ -195,33 +223,34 @@ class PortalGraphParticle : public AmoebotParticle {
       // megkeressük a helyes irányt = direction
       Direction direction;
       int potentialdirection[6]={(movedirection+1) % 6,(movedirection+2) % 6,(movedirection+3) % 6,
-              (movedirection+4) % 6,(movedirection+5) % 6,(movedirection + 6) % 6};
+              (movedirection+4) % 6,(movedirection+5) % 6,movedirection};
       bool directionFound = false;
       for(int pot : potentialdirection){
-        if (neighbourExists(axis,static_cast<Direction>(pot)) && getOutedge(pot) == -1){
+        if (neighbourExists( axis,static_cast<Direction>(pot)) && getOutedge(pot) == -1){
               direction =static_cast<Direction>(pot);
               directionFound = true;
               break;
         }
       }
-      if (!directionFound) return;
+      if (!directionFound) {
+          return;
+      }
       if(isTarget){
          value += 1;
       }
-      setOutedge(direction,value);
+      setOutedge(direction, value);
       Direction nbrDirection;
       nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
       nbrAtLabel(direction).eulerTour(value, nbrDirection, axis);
-
   }
 
-  void rootPruning(Axis axis) {
+  void rootPruning() {
       noTargetinPath();
       visited = true;
       int potentialdirection[6]={0,1,2,3,4,5};
       for(int pot : potentialdirection){
-        if (neighbourExists(axis,static_cast<Direction>(pot)) && !nbrAtLabel(pot).visited){
-            nbrAtLabel(pot).rootPruning(axis);
+        if (hasNbrAtLabel(pot) && !nbrAtLabel(pot).visited){
+            nbrAtLabel(pot).rootPruning();
         }
       }
   }
@@ -269,6 +298,7 @@ class PortalGraphParticle : public AmoebotParticle {
   // Member variables.
   //They can contain the parallel connections as well
   bool portalSet = false;
+  bool eulerDone = false;
 
  private:
   friend class PortalGraphSystem;
@@ -278,6 +308,7 @@ class PortalGraphParticle : public AmoebotParticle {
 
   int inedge[6] = {-1,-1,-1,-1,-1,-1};
   int outedge[6] = {-1,-1,-1,-1,-1,-1};
+  int counter = 10000;
 
   void calculatePortalDistance();
   void chooseParent();

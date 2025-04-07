@@ -85,13 +85,7 @@ void PortalGraphParticle::prune() {
         return;
     }
     startEulerTour(X);
-    noTargetinPath();
-    std::cout << "start" << std::endl;
-    for(int i=0;i<6;i++){
-        std::cout << "inedge[" << i << "]: " << inedge[i] << std::endl;
-        std::cout << "outedge[" << i << "]: " << outedge[i] << std::endl;
-    }
-    std::cout << "end" << std::endl;
+    //rootPruning(X);
 }
 
 
