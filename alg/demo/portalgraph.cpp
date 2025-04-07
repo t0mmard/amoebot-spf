@@ -86,6 +86,7 @@ void PortalGraphParticle::prune() {
     }
     const Particle& p = system.at(system.size() - 1);
     auto particle = dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p));
+    particle.isTarget = true;
     startEulerTour({particle}, X);
     noTargetinPath();
     std::cout << "start" << std::endl;
@@ -205,6 +206,8 @@ int PortalGraphParticle::headMarkColor() const
 {
     if (_leader) {
       return 0x0000FF;
+    } else if (isTarget) {
+        return 0xCFFF04;
     } else if (distancesSet()) {
         return getColor(((getPortalDistanceFromRoot(X) + getPortalDistanceFromRoot(Y) + getPortalDistanceFromRoot(Z))/2), maxDistance);
     } else {

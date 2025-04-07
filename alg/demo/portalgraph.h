@@ -177,7 +177,7 @@ class PortalGraphParticle : public AmoebotParticle {
   void startEulerTour(const std::set<PortalGraphParticle>& targets, Axis axis){
       Direction direction;
       Direction nbrDirection;
-      int potentialdirection[6]={1,0,5,4,3,2};
+      int potentialdirection[6]={0,1,2,3,4,5};
       for(int pot : potentialdirection){
         if (neighbourExists(axis,static_cast<Direction>(pot))){
               direction =static_cast<Direction>((pot));
@@ -186,11 +186,12 @@ class PortalGraphParticle : public AmoebotParticle {
       }
       setOutedge(direction,0);
       nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
+      nbrAtLabel(direction).setInedge(nbrDirection, 0);
       nbrAtLabel(direction).eulerTour(0,targets,nbrDirection,axis);
   }
 
   void eulerTour(int value,const std::set<PortalGraphParticle>& targets, Direction movedirection, Axis axis){
-      if (getOutedge(movedirection)!=-1){
+      if (getOutedge(movedirection)==-1){
           setOutedge(movedirection,value);
           if(targets.count(nbrAtLabel(static_cast<int>(movedirection))) > 0 ){ // its in target
              value += 1;
@@ -198,15 +199,17 @@ class PortalGraphParticle : public AmoebotParticle {
           nbrAtLabel(static_cast<int>(movedirection)).setInedge((static_cast<int>(movedirection)+3) % 6,value);
           // megkeressük a helyes irányt = direction
           Direction direction;
-          int potentialdirection[6]={((movedirection+3)-1 + 6) % 6,((movedirection+3)-2 + 6) % 6,((movedirection+3)-3 + 6) % 6,
-                  ((movedirection+3)-4 + 6) % 6,((movedirection+3)-5 + 6) % 6,((movedirection+3)-6 + 6) % 6};
+          int potentialdirection[6]={(movedirection+1) % 6,(movedirection+2) % 6,(movedirection+3) % 6,
+                  (movedirection+4) % 6,(movedirection+5) % 6,(movedirection + 6) % 6};
           for(int pot : potentialdirection){
             if (neighbourExists(axis,static_cast<Direction>(pot))){
                   direction =static_cast<Direction>(pot);
                   break ;
             }
           }
-          nbrAtLabel(movedirection).eulerTour(value,targets,direction,axis);
+          Direction nbrDirection;
+          nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
+          nbrAtLabel(direction).eulerTour(value,targets,nbrDirection,axis);
       }
 
   }
@@ -250,6 +253,8 @@ class PortalGraphParticle : public AmoebotParticle {
   int headMarkColor() const override;
   int headMarkDir() const override;
   int tailMarkColor() const override;
+
+  bool isTarget = false;
 
   // Returns the string to be displayed when this particle is inspected; used to
   // snapshot the current values of this particle's memory at runtime.
