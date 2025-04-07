@@ -215,12 +215,15 @@ class PortalGraphParticle : public AmoebotParticle {
 
   }
 
-  void rootPruning() {
-      //startEulerTour(targets,axis);
-      for(unsigned int i=0; i < system.size();i++){
-          const Particle& p = system.at(i);
-          dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p)).noTargetinPath();
-      } //With no target in path we can cut all unimportant part it can be used this for cycle in somewhere else andnot use this function
+  void rootPruning(Axis axis) {
+      noTargetinPath();
+      visited = true;
+      int potentialdirection[6]={0,1,2,3,4,5};
+      for(int pot : potentialdirection){
+        if (neighbourExists(axis,static_cast<Direction>(pot)) && !nbrAtLabel(pot).visited){
+            nbrAtLabel(pot).rootPruning(axis);
+        }
+      }
   }
 
   void noTargetinPath(){
@@ -256,6 +259,7 @@ class PortalGraphParticle : public AmoebotParticle {
   int tailMarkColor() const override;
 
   bool isTarget = false;
+  bool visited = false;
 
   // Returns the string to be displayed when this particle is inspected; used to
   // snapshot the current values of this particle's memory at runtime.
