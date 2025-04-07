@@ -174,21 +174,22 @@ class PortalGraphParticle : public AmoebotParticle {
           return head.y < other.head.y;
       }
 
-  void startEulerTour(const std::set<PortalGraphParticle>& targets,Axis axis){
+  void startEulerTour(const std::set<PortalGraphParticle>& targets, Axis axis){
       Direction direction;
+      Direction nbrDirection;
       int potentialdirection[6]={1,0,5,4,3,2};
       for(int pot : potentialdirection){
         if (neighbourExists(axis,static_cast<Direction>(pot))){
               direction =static_cast<Direction>((pot));
               break;
+        }
       }
-      }
-        setOutedge(direction,0);
-        direction = static_cast<Direction>((static_cast<int>(direction)+3)%6);
-        nbrAtLabel(direction).eulerTour(0,targets,direction,axis);
+      setOutedge(direction,0);
+      nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
+      nbrAtLabel(direction).eulerTour(0,targets,nbrDirection,axis);
   }
 
-  void eulerTour(int value,const std::set<PortalGraphParticle>& targets,Direction movedirection,Axis axis){
+  void eulerTour(int value,const std::set<PortalGraphParticle>& targets, Direction movedirection, Axis axis){
       if (getOutedge(movedirection)!=-1){
           setOutedge(movedirection,value);
           if(targets.count(nbrAtLabel(static_cast<int>(movedirection))) > 0 ){ // its in target
@@ -203,22 +204,21 @@ class PortalGraphParticle : public AmoebotParticle {
             if (neighbourExists(axis,static_cast<Direction>(pot))){
                   direction =static_cast<Direction>(pot);
                   break ;
+            }
           }
-      }
           nbrAtLabel(movedirection).eulerTour(value,targets,direction,axis);
       }
 
   }
 
-  void rootPruning(const std::set<PortalGraphParticle>& targets,Axis axis) {
-      startEulerTour(targets,axis);
+  void rootPruning() {
+      //startEulerTour(targets,axis);
       for(unsigned int i=0; i < system.size();i++){
           const Particle& p = system.at(i);
           dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p)).noTargetinPath();
       } //With no target in path we can cut all unimportant part it can be used this for cycle in somewhere else andnot use this function
-
-
   }
+
   void noTargetinPath(){
       for(int i=0;i<6;i++){
           if(inedge[i] == outedge[i]) {
@@ -271,6 +271,7 @@ class PortalGraphParticle : public AmoebotParticle {
 
   void calculatePortalDistance();
   void chooseParent();
+  void prune();
   void createPortalGraph(Axis axis);
   void initializePortalGraph();
   Direction chooseClosestToLeader(std::vector<Direction>);

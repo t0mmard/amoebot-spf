@@ -76,6 +76,24 @@ void PortalGraphParticle::activate()
     initializePortalGraph();
     calculatePortalDistance();
     chooseParent();
+
+    prune();
+}
+
+void PortalGraphParticle::prune() {
+    if (parent == NONE) {
+        return;
+    }
+    const Particle& p = system.at(system.size() - 1);
+    auto particle = dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p));
+    startEulerTour({particle}, X);
+    noTargetinPath();
+    std::cout << "start" << std::endl;
+    for(int i=0;i<6;i++){
+        std::cout << "inedge[" << i << "]: " << inedge[i] << std::endl;
+        std::cout << "outedge[" << i << "]: " << outedge[i] << std::endl;
+    }
+    std::cout << "end" << std::endl;
 }
 
 
@@ -323,7 +341,7 @@ PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph)
         }
     }
 
-    int leader = randInt(0, numParticles);
+    int leader = 0;//randInt(0, numParticles);
     int i = 0;
 
     for (const auto &node : occupied)
