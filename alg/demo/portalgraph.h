@@ -330,7 +330,7 @@ class PortalGraphParticle : public AmoebotParticle {
 class PortalGraphSystem : public AmoebotSystem {
  public:
   // Constructs a system of the specified number of PortalGraphDemoParticles.
-  PortalGraphSystem(int numParticles = 30, std::string portalGraph = "");
+  PortalGraphSystem(int numParticles = 30, std::string portalGraph = "",int grid_size = 40);
 };
 
 #endif  // AMOEBOTSIM_ALG_DEMO_PORTALGRAPH_H_

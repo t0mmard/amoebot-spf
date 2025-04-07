@@ -278,21 +278,21 @@ QString PortalGraphParticle::inspectionText() const
 }
 
 
-PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph)
+PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph,int grid_size)
 {
     //For visualization only
     maxDistance = 0;
     //For visualization only
     std::set<Node> occupied;
-    occupied.insert(Node(16, 16));
-    int grid_size = 32;
+    occupied.insert(Node(grid_size/2,grid_size/2 ));
+
     std::set<Node> graph;
 
     for (int i = 0; i < grid_size; i++)
     {
         for (int j = 0; j < grid_size; j++)
         {
-            if (!(i == 16 && j == 16))
+            if (!(i == grid_size/2 && j == grid_size/2))
                 graph.insert(Node(i, j));
         }
     }
@@ -301,7 +301,7 @@ PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph)
     std::set<Node> candidates;
     for (int i = 0; i < 6; ++i)
     {
-        candidates.insert(Node(16, 16).nodeInDir(i));
+        candidates.insert(Node(grid_size/2, grid_size/2).nodeInDir(i));
     }
 
     // Add all other particles using the random tree algorithm.
