@@ -84,10 +84,7 @@ void PortalGraphParticle::prune() {
     if (parent == NONE) {
         return;
     }
-    const Particle& p = system.at(system.size() - 1);
-    auto particle = dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p));
-    particle.isTarget = true;
-    startEulerTour({particle}, X);
+    startEulerTour(X);
     noTargetinPath();
     std::cout << "start" << std::endl;
     for(int i=0;i<6;i++){
@@ -349,8 +346,11 @@ PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph)
 
     for (const auto &node : occupied)
     {
-
-        insert(new PortalGraphParticle(node, 0, i == leader, portalGraph, *this));
+        auto newParticle = new PortalGraphParticle(node, 0, i == leader, portalGraph, *this);
+        if (i == occupied.size() - 1) {
+            newParticle->isTarget = true;
+        }
+        insert(newParticle);
         ++i;
     }
 }

@@ -174,7 +174,7 @@ class PortalGraphParticle : public AmoebotParticle {
           return head.y < other.head.y;
       }
 
-  void startEulerTour(const std::set<PortalGraphParticle>& targets, Axis axis){
+  void startEulerTour(Axis axis){
       Direction direction;
       Direction nbrDirection;
       int potentialdirection[6]={0,1,2,3,4,5};
@@ -187,15 +187,11 @@ class PortalGraphParticle : public AmoebotParticle {
       setOutedge(direction,0);
       nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
       nbrAtLabel(direction).setInedge(nbrDirection, 0);
-      nbrAtLabel(direction).eulerTour(0,targets,nbrDirection,axis);
+      nbrAtLabel(direction).eulerTour(0, nbrDirection,axis);
   }
 
-  void eulerTour(int value,const std::set<PortalGraphParticle>& targets, Direction movedirection, Axis axis){
+  void eulerTour(int value, Direction movedirection, Axis axis){
       if (getOutedge(movedirection)==-1){
-          setOutedge(movedirection,value);
-          if(targets.count(nbrAtLabel(static_cast<int>(movedirection))) > 0 ){ // its in target
-             value += 1;
-          }
           nbrAtLabel(static_cast<int>(movedirection)).setInedge((static_cast<int>(movedirection)+3) % 6,value);
           // megkeressük a helyes irányt = direction
           Direction direction;
@@ -207,9 +203,13 @@ class PortalGraphParticle : public AmoebotParticle {
                   break ;
             }
           }
+          if(isTarget){
+             value += 1;
+          }
+          setOutedge(direction,value);
           Direction nbrDirection;
           nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
-          nbrAtLabel(direction).eulerTour(value,targets,nbrDirection,axis);
+          nbrAtLabel(direction).eulerTour(value, nbrDirection, axis);
       }
 
   }
