@@ -198,7 +198,7 @@ class PortalGraphParticle : public AmoebotParticle {
               (movedirection+4) % 6,(movedirection+5) % 6,(movedirection + 6) % 6};
       bool directionFound = false;
       for(int pot : potentialdirection){
-        if (neighbourExists(axis,static_cast<Direction>(pot)) && getOutedge(pot)){
+        if (neighbourExists(axis,static_cast<Direction>(pot)) && getOutedge(pot) == -1){
               direction =static_cast<Direction>(pot);
               directionFound = true;
               break;
@@ -232,7 +232,7 @@ class PortalGraphParticle : public AmoebotParticle {
       }
   }
 
-  int getInedge(int index){
+  int getInedge(int index) const {
       return inedge[index];
   }
 
@@ -240,7 +240,7 @@ class PortalGraphParticle : public AmoebotParticle {
       inedge[index]= value;
   }
 
-  int getOutedge(int index){
+  int getOutedge(int index) const {
       return outedge[index];
   }
 

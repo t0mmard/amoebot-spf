@@ -81,7 +81,7 @@ void PortalGraphParticle::activate()
 }
 
 void PortalGraphParticle::prune() {
-    if (parent == NONE) {
+    if (!_leader) {
         return;
     }
     startEulerTour(X);
@@ -251,6 +251,27 @@ QString PortalGraphParticle::inspectionText() const
 
     text += "Shortest path length: ";
     text += QString::number((getPortalDistanceFromRoot(Axis::X)+getPortalDistanceFromRoot(Axis::Y)+getPortalDistanceFromRoot(Axis::Z))/2);
+    text += "\n";
+    text += "\n";
+    text += "Outedge: ";
+
+    QString strList2;
+    for (int i = 0; i < 6; ++i) {
+        strList2 += QString::number(getOutedge(i));
+        strList2 += ", ";
+    }
+    text += strList2;
+    text += "\n";
+    text += "\n";
+
+    text += "Inedge: ";
+
+    QString strList;
+    for (int i = 0; i < 6; ++i) {
+        strList += QString::number(getInedge(i));
+        strList += ", ";
+    }
+    text += strList;
     text += "\n";
     text += "\n";
 
