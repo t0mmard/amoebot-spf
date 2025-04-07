@@ -83,6 +83,24 @@ class PortalGraphParticle : public AmoebotParticle {
       return std::find(_portalDirections[axis].begin(), _portalDirections[axis].end(), dir) != _portalDirections[axis].end();
   }
 
+  bool neighboursDoneConstructingPortal(Axis axis) {
+      bool done = true;
+      for (int i = 0; i < system.size() - 1; i++) {
+          const Particle& p = system.at(i);
+          auto pgp = dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p));
+          done = done && pgp.getPortalDirections(axis).size() > 0;
+      }
+      return done;
+  }
+
+  bool connectedAmoebot() const {
+      bool connected = false;
+      for (int i = 0; i < 6; ++i) {
+          connected = connected || getInedge(i) != -1;
+      }
+      return connected;
+  }
+
 
   /*Axis getPortalClosestToRoot() {
       Axis result;
@@ -199,8 +217,7 @@ class PortalGraphParticle : public AmoebotParticle {
   }
 
   void startEulerTour(Axis axis){
-      if(eulerDone || counter > 1){
-          counter--;
+      if(eulerDone || !neighboursDoneConstructingPortal(axis)){
           return;
       }
       eulerDone = true;
@@ -216,6 +233,7 @@ class PortalGraphParticle : public AmoebotParticle {
       setOutedge(direction,0);
       nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
       nbrAtLabel(direction).eulerTour(0, nbrDirection,axis);
+      rootPruning();
   }
 
   void eulerTour(int value, Direction movedirection, Axis axis){
@@ -308,7 +326,6 @@ class PortalGraphParticle : public AmoebotParticle {
 
   int inedge[6] = {-1,-1,-1,-1,-1,-1};
   int outedge[6] = {-1,-1,-1,-1,-1,-1};
-  int counter = 10000;
 
   void calculatePortalDistance();
   void chooseParent();
