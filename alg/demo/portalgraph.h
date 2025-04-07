@@ -191,26 +191,27 @@ class PortalGraphParticle : public AmoebotParticle {
   }
 
   void eulerTour(int value, Direction movedirection, Axis axis){
-      if (getOutedge(movedirection)==-1){
-          nbrAtLabel(static_cast<int>(movedirection)).setInedge((static_cast<int>(movedirection)+3) % 6,value);
-          // megkeressük a helyes irányt = direction
-          Direction direction;
-          int potentialdirection[6]={(movedirection+1) % 6,(movedirection+2) % 6,(movedirection+3) % 6,
-                  (movedirection+4) % 6,(movedirection+5) % 6,(movedirection + 6) % 6};
-          for(int pot : potentialdirection){
-            if (neighbourExists(axis,static_cast<Direction>(pot))){
-                  direction =static_cast<Direction>(pot);
-                  break ;
-            }
-          }
-          if(isTarget){
-             value += 1;
-          }
-          setOutedge(direction,value);
-          Direction nbrDirection;
-          nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
-          nbrAtLabel(direction).eulerTour(value, nbrDirection, axis);
+      setInedge(movedirection, value);
+      // megkeressük a helyes irányt = direction
+      Direction direction;
+      int potentialdirection[6]={(movedirection+1) % 6,(movedirection+2) % 6,(movedirection+3) % 6,
+              (movedirection+4) % 6,(movedirection+5) % 6,(movedirection + 6) % 6};
+      bool directionFound = false;
+      for(int pot : potentialdirection){
+        if (neighbourExists(axis,static_cast<Direction>(pot)) && getOutedge(pot)){
+              direction =static_cast<Direction>(pot);
+              directionFound = true;
+              break;
+        }
       }
+      if (!directionFound) return;
+      if(isTarget){
+         value += 1;
+      }
+      setOutedge(direction,value);
+      Direction nbrDirection;
+      nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
+      nbrAtLabel(direction).eulerTour(value, nbrDirection, axis);
 
   }
 
