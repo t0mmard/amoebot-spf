@@ -85,7 +85,6 @@ void PortalGraphParticle::prune() {
         return;
     }
     startEulerTour(X);
-    //rootPruning(X);
 }
 
 
@@ -196,9 +195,11 @@ PortalGraphParticle& PortalGraphParticle::nbrAtLabel(int label) const {
 int PortalGraphParticle::headMarkColor() const
 {
     if (_leader) {
-      return 0x0000FF;
+        return 0x0000FF;
     } else if (isTarget) {
-        return 0xCFFF04;
+        return 0xBF40BF;
+    } else if(visited && !connectedAmoebot() && parent != NONE){
+        return 0xA9A9A9;
     } else if (distancesSet()) {
         return getColor(((getPortalDistanceFromRoot(X) + getPortalDistanceFromRoot(Y) + getPortalDistanceFromRoot(Z))/2), maxDistance);
     } else {
