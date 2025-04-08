@@ -81,7 +81,7 @@ void ShortestPathForestAlg::instantiate(const int numParticles) {
   }
 }
 
-PortalGraphAlg::PortalGraphAlg() : Algorithm("SPF", "portalgraph") {
+PortalGraphAlg::PortalGraphAlg() : Algorithm("Shortest Path Forest", "portalgraph") {
   addParameter("# Particles", "30");
   //addParameter("Grid size", "40");
   addParameter("Number of targets", "1");
@@ -455,7 +455,7 @@ AlgorithmList::AlgorithmList() {
   _algorithms.push_back(new LeaderElectionAlg());
   _algorithms.push_back(new LeaderElectionByErosionAlg());
   _algorithms.push_back(new ShapeFormationAlg());
-  _algorithms.push_back(new ShortestPathForestAlg());
+  //_algorithms.push_back(new ShortestPathForestAlg());
 }
 
 AlgorithmList::~AlgorithmList() {

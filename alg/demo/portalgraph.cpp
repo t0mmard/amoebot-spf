@@ -10,6 +10,8 @@
 
 //for visualization only
 int maxDistance = 0;
+int numberOfParticles = 0;
+int numberOfTargets = 0;
 
 //helper functions
 bool contains(const std::vector<int>& vec, int num) {
@@ -196,14 +198,14 @@ int PortalGraphParticle::headMarkColor() const
 {
     if (_leader) {
         return 0x0000FF;
-    } else if (isTarget) {
-        return 0xBF40BF;
+    } else if (isTarget && numberOfTargets < numberOfParticles - 1) {
+        return 0xDA70D6;
     } else if(visited && !connectedAmoebot() && parent != NONE){
         return 0xA9A9A9;
     } else if (distancesSet()) {
         return getColor(((getPortalDistanceFromRoot(X) + getPortalDistanceFromRoot(Y) + getPortalDistanceFromRoot(Z))/2), maxDistance);
     } else {
-        return 0xEDFF8A;
+        return -1;
     }
 }
 
@@ -283,6 +285,8 @@ PortalGraphSystem::PortalGraphSystem(int numParticles, int targetCount, std::str
 {
     //For visualization only
     maxDistance = 0;
+    numberOfTargets = targetCount;
+    numberOfParticles = numParticles;
     //For visualization only
     std::set<Node> occupied;
     occupied.insert(Node(grid_size/2,grid_size/2 ));

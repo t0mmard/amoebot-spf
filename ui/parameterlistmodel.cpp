@@ -3,6 +3,7 @@
  * notice can be found at the top of main/main.cpp. */
 
 #include "ui/parameterlistmodel.h"
+#include <iostream>
 
 ParameterListModel::ParameterListModel(QObject* parent)
     : QStringListModel(parent) {
