@@ -94,6 +94,7 @@ void PortalGraphParticle::prune() {
         noTargetinPath();
     } else if (_leader) {
         startEulerTour(X);
+        noTargetinPath();
     }
 }
 
