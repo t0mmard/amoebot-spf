@@ -93,6 +93,16 @@ class PortalGraphParticle : public AmoebotParticle {
       return done;
   }
 
+  bool neighboursDoneParentChoice() {
+      bool done = true;
+      for (int i = 0; i < system.size() - 1; i++) {
+          const Particle& p = system.at(i);
+          auto pgp = dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p));
+          done = done && (pgp.parent != -1 || pgp._leader);
+      }
+      return done;
+  }
+
   bool connectedAmoebot() const {
       bool connected = false;
       for (int i = 0; i < 6; ++i) {
@@ -217,15 +227,17 @@ class PortalGraphParticle : public AmoebotParticle {
   }
 
   void startEulerTour(Axis axis){
-      if(eulerDone || !neighboursDoneConstructingPortal(axis)){
+      if(eulerDone || !neighboursDoneParentChoice()){
           return;
       }
       eulerDone = true;
       Direction direction;
       Direction nbrDirection;
       int potentialdirection[6]={0,1,2,3,4,5};
+      std::cout << "itt" << std::endl;
       for(int pot : potentialdirection){
-        if (neighbourExists(axis,static_cast<Direction>(pot))){
+          if (hasNbrAtLabel(pot)) std::cout << "p: " << nbrAtLabel(pot).parent << std::endl;
+        if (hasNbrAtLabel(pot) && nbrAtLabel(pot).parent == (pot + 3) % 6){
               direction =static_cast<Direction>((pot));
               break;
         }
@@ -244,7 +256,7 @@ class PortalGraphParticle : public AmoebotParticle {
               (movedirection+4) % 6,(movedirection+5) % 6,movedirection};
       bool directionFound = false;
       for(int pot : potentialdirection){
-        if (neighbourExists( axis,static_cast<Direction>(pot)) && getOutedge(pot) == -1){
+        if (hasNbrAtLabel(pot) && (nbrAtLabel(pot).parent == (pot + 3) % 6 || pot == parent) && getOutedge(pot) == -1){
               direction =static_cast<Direction>(pot);
               directionFound = true;
               break;
@@ -347,7 +359,9 @@ class PortalGraphParticle : public AmoebotParticle {
 class PortalGraphSystem : public AmoebotSystem {
  public:
   // Constructs a system of the specified number of PortalGraphDemoParticles.
-  PortalGraphSystem(int numParticles = 30, std::string portalGraph = "",int grid_size = 40);
+  PortalGraphSystem(int numParticles = 30,
+                    int targetCount = 1,
+                    std::string portalGraph = "",int grid_size = 40);
 };
 
 #endif  // AMOEBOTSIM_ALG_DEMO_PORTALGRAPH_H_

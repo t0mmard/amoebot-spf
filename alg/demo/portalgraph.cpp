@@ -279,7 +279,7 @@ QString PortalGraphParticle::inspectionText() const
 }
 
 
-PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph,int grid_size)
+PortalGraphSystem::PortalGraphSystem(int numParticles, int targetCount, std::string portalGraph,int grid_size)
 {
     //For visualization only
     maxDistance = 0;
@@ -357,15 +357,24 @@ PortalGraphSystem::PortalGraphSystem(int numParticles, std::string portalGraph,i
         }
     }
 
-    int leader = 0;//randInt(0, numParticles);
+    // Generate indices
+    std::vector<int> indices(numParticles);
+    std::iota(indices.begin(), indices.end(), 0); // [0, 1, ..., numParticles-1]
+
+    // Shuffle
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::shuffle(indices.begin(), indices.end(), gen);
+
+    // Pick targets
+    std::vector<int> targetIndices(indices.begin() + 1, indices.begin() + 1 + targetCount);
+
     int i = 0;
 
     for (const auto &node : occupied)
     {
-        auto newParticle = new PortalGraphParticle(node, 0, i == leader, portalGraph, *this);
-        if (i == occupied.size() - 1) {
-            newParticle->isTarget = true;
-        }
+        auto newParticle = new PortalGraphParticle(node, 0, i == indices[0], portalGraph, *this);
+        newParticle->isTarget = std::find(targetIndices.begin(), targetIndices.end(), i) != targetIndices.end();
         insert(newParticle);
         ++i;
     }
