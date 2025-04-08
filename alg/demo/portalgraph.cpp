@@ -208,7 +208,7 @@ int PortalGraphParticle::headMarkColor() const
     if (_leader) {
         return 0x0000FF;
     } else if (isTarget && numberOfTargets < numberOfParticles - 1) {
-        return 0xDA70D6;
+        return 0xFF10F0;
     } else if(visited && !connectedAmoebot() && parent != NONE){
         return 0xA9A9A9;
     } else if (distancesSet()) {
