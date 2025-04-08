@@ -33,7 +33,7 @@ QString directionToString(Direction dir) {
 QString stringifyDirectionVector(const std::vector<Direction>& vec) {
     QString result = "";
     for (size_t i = 0; i < vec.size(); ++i) {
-        result += directionToString(vec[i]);
+        result += "\n" + directionToString(vec[i]);
         if (i != vec.size() - 1) {
             result += ", ";
         }
@@ -83,10 +83,18 @@ void PortalGraphParticle::activate()
 }
 
 void PortalGraphParticle::prune() {
-    if (!_leader) {
-        return;
+    /*if (!_leader) { Ez az eredeti, demo után visszaállítani
+         return;
     }
     startEulerTour(X);
+    */
+    if (!_leader && !eulerDone) {
+         return;
+    } else if (!_leader && eulerDone && !visited) {
+        noTargetinPath();
+    } else if (_leader) {
+        startEulerTour(X);
+    }
 }
 
 
@@ -225,13 +233,13 @@ QString PortalGraphParticle::inspectionText() const
     QString text;
     text += "X portal graph neighbours: ";
     text += stringifyDirectionVector(getPortalDirections(Axis::X));
-    text += "\n";
+    text += "\n\n";
     text += "Y portal graph neighbours: ";
     text += stringifyDirectionVector(getPortalDirections(Axis::Y));
-    text += "\n";
+    text += "\n\n";
     text += "Z portal graph neighbours: ";
     text += stringifyDirectionVector(getPortalDirections(Axis::Z));
-    text += "\n\n";
+    text += "\n\n\n";
 
     text += "X portal distance: ";
     text += QString::number(getPortalDistanceFromRoot(Axis::X));

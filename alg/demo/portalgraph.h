@@ -234,9 +234,7 @@ class PortalGraphParticle : public AmoebotParticle {
       Direction direction;
       Direction nbrDirection;
       int potentialdirection[6]={0,1,2,3,4,5};
-      std::cout << "itt" << std::endl;
       for(int pot : potentialdirection){
-          if (hasNbrAtLabel(pot)) std::cout << "p: " << nbrAtLabel(pot).parent << std::endl;
         if (hasNbrAtLabel(pot) && nbrAtLabel(pot).parent == (pot + 3) % 6){
               direction =static_cast<Direction>((pot));
               break;
@@ -245,11 +243,12 @@ class PortalGraphParticle : public AmoebotParticle {
       setOutedge(direction,0);
       nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
       nbrAtLabel(direction).eulerTour(0, nbrDirection,axis);
-      rootPruning();
+      //rootPruning(); //Ezt vissza kell állítani demo után
   }
 
   void eulerTour(int value, Direction movedirection, Axis axis){
       setInedge(movedirection, value);
+      eulerDone = true; //Ez most csak vizhez kell, majd törölni
       // megkeressük a helyes irányt = direction
       Direction direction;
       int potentialdirection[6]={(movedirection+1) % 6,(movedirection+2) % 6,(movedirection+3) % 6,
@@ -286,6 +285,7 @@ class PortalGraphParticle : public AmoebotParticle {
   }
 
   void noTargetinPath(){
+      visited = true; //Törölni csak vizualáizáció
       for(int i=0;i<6;i++){
           if(inedge[i] == outedge[i]) {
               inedge[i] = -1;
