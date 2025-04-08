@@ -264,8 +264,9 @@ class PortalGraphParticle : public AmoebotParticle {
       if (!directionFound) {
           return;
       }
-      if(isTarget){
+      if(isTarget && !isTargetused){
          value += 1;
+         isTargetused = true;
       }
       setOutedge(direction, value);
       Direction nbrDirection;
@@ -319,6 +320,7 @@ class PortalGraphParticle : public AmoebotParticle {
 
   bool isTarget = false;
   bool visited = false;
+  bool isTargetused = false;
 
   // Returns the string to be displayed when this particle is inspected; used to
   // snapshot the current values of this particle's memory at runtime.
