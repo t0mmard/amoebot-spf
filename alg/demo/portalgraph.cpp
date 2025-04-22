@@ -20,13 +20,13 @@ bool contains(const std::vector<int>& vec, int num) {
 
 QString directionToString(Direction dir) {
     switch (dir) {
-        case WEST: return "WEST";
-        case EAST: return "EAST";
-        case SOUTHWEST: return "SOUTHWEST";
-        case NORTHEAST: return "NORTHEAST";
-        case NORTHWEST: return "NORTHWEST";
-        case SOUTHEAST: return "SOUTHEAST";
-        default: return "Unknown";
+    case WEST: return "WEST";
+    case EAST: return "EAST";
+    case SOUTHWEST: return "SOUTHWEST";
+    case NORTHEAST: return "NORTHEAST";
+    case NORTHWEST: return "NORTHWEST";
+    case SOUTHEAST: return "SOUTHEAST";
+    default: return "Unknown";
     }
 }
 
@@ -89,7 +89,7 @@ void PortalGraphParticle::prune() {
     startEulerTour(X);
     */
     if (!_leader && !eulerDone) {
-         return;
+        return;
     } else if (!_leader && eulerDone && !visited) {
         noTargetinPath();
     } else if (_leader) {
@@ -199,7 +199,7 @@ void PortalGraphParticle::chooseParent() {
 
 
 PortalGraphParticle& PortalGraphParticle::nbrAtLabel(int label) const {
-  return AmoebotParticle::nbrAtLabel<PortalGraphParticle>(label);
+    return AmoebotParticle::nbrAtLabel<PortalGraphParticle>(label);
 }
 
 
