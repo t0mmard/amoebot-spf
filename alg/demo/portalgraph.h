@@ -96,6 +96,10 @@ public:
         return _portalDistanceFromRoot.at(axis);
     }
 
+    int getPortalDistanceFromGiven(Axis axis,PortalGraphParticle given){
+        return abs(_portalDistanceFromRoot.at(axis) - given.getPortalDistanceFromRoot(axis));
+    }
+
     std::vector<Direction> getPortalDirections(Axis axis) const {
         return _portalDirections.at(axis);
     }
@@ -279,6 +283,27 @@ public:
 
     void setOutedge(int index,int value){
         outedge[index]= value;
+    }
+
+    std::map<PortalGraphParticle,std::pair<int, int>> visibility(std::set<PortalGraphParticle>& P,std::set<PortalGraphParticle>& B){
+          std::map<PortalGraphParticle, std::pair<int, int>> visiable = {};
+
+            for(PortalGraphParticle b : B ){
+                visiable[b] = {-1,-1};
+                for(PortalGraphParticle p : P){
+                    if(p.getPortalDistanceFromGiven(Y,b) == 0){
+                       visiable[b].second = getPortalDistanceFromGiven(Z,b);
+                    }
+                    else if(p.getPortalDistanceFromGiven(Z,b) == 0){
+                        visiable[b].first = getPortalDistanceFromGiven(Y,b);
+                    }
+                }
+            }
+          return visiable;
+          //-1,-1 azt jelenti hogy nem látható sem y-ból sem z-ből
+          // a szülője az lesz amelyik kisebb ha egyik sem 0
+          // Lehet úgy kellene megcsinálni hogy nincs a külső for ciklus és majd amikor használjuk akkor hívjuk meg mindegyiknek ezt a funkcióját
+          //és akkor csak két int-et kellene visszadnia
     }
 
     PortalGraphParticle(const Node& head, const int orientation, const bool _leader, std::string portalGraph, AmoebotSystem& system);
