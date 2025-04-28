@@ -285,25 +285,56 @@ public:
         outedge[index]= value;
     }
 
-    std::map<PortalGraphParticle,std::pair<int, int>> visibility(std::set<PortalGraphParticle>& P,std::set<PortalGraphParticle>& B){
-          std::map<PortalGraphParticle, std::pair<int, int>> visiable = {};
+    void visibility(std::set<PortalGraphParticle>& P){
 
-            for(PortalGraphParticle b : B ){
-                visiable[b] = {-1,-1};
-                for(PortalGraphParticle p : P){
-                    if(p.getPortalDistanceFromGiven(Y,b) == 0){
-                       visiable[b].second = getPortalDistanceFromGiven(Z,b);
+           for (PortalGraphParticle p : P) {
+                    if (getPortalDistanceFromGiven(Y, p) == 0) {
+                        // Correct access to the 3rd and 4th elements of the tuple
+                        propParentY = &p;
+                        propDistanceFromparentZ = getPortalDistanceFromGiven(Z, p);
                     }
-                    else if(p.getPortalDistanceFromGiven(Z,b) == 0){
-                        visiable[b].first = getPortalDistanceFromGiven(Y,b);
+                    else if (getPortalDistanceFromGiven(Z, p) == 0) {
+                        // Correct access to the 1st and 2nd elements of the tuple
+                        propParentZ = &p;
+                        propDistanceFromparentY = getPortalDistanceFromGiven(Y, p);
                     }
                 }
-            }
-          return visiable;
           //-1,-1 azt jelenti hogy nem látható sem y-ból sem z-ből
           // a szülője az lesz amelyik kisebb ha egyik sem 0
           // Lehet úgy kellene megcsinálni hogy nincs a külső for ciklus és majd amikor használjuk akkor hívjuk meg mindegyiknek ezt a funkcióját
           //és akkor csak két int-et kellene visszadnia
+    }
+    int getDistance(){
+        return distance;
+    }
+
+    void phase1(){ // azokra akiknek legalább az egyik nem -1
+        int d = 0;
+        if(propDistanceFromparentZ!= -1 && propDistanceFromparentY!=-1){
+
+            if(propDistanceFromparentZ < propDistanceFromparentY){
+                propparent = propParentZ;
+                d = propDistanceFromparentZ;
+            }
+            else{
+                propparent = propParentY;
+                d= propDistanceFromparentY;
+            }
+
+        }
+        else if(propDistanceFromparentZ!= -1){
+            propparent = propParentZ;
+            d = propDistanceFromparentZ;
+        }
+        else{
+            propparent = propParentY;
+            d= propDistanceFromparentY;
+        }
+        distance = propparent->getDistance() + d;
+    }
+
+    void phase2(){
+
     }
 
     PortalGraphParticle(const Node& head, const int orientation, const bool _leader, std::string portalGraph, AmoebotSystem& system);
@@ -335,6 +366,13 @@ private:
 
     int inedge[6] = {-1,-1,-1,-1,-1,-1};
     int outedge[6] = {-1,-1,-1,-1,-1,-1};
+
+    PortalGraphParticle* propParentY;
+    int propDistanceFromparentY = -1;
+    PortalGraphParticle* propParentZ;
+    int propDistanceFromparentZ = -1;
+    int distance = 0;
+    PortalGraphParticle* propparent;
 
     void calculatePortalDistance();
     void chooseParent();
