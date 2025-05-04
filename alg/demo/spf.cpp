@@ -106,7 +106,9 @@ void ShortestPathForestParticle::activate()
     } else {
         initializePortalGraph();
        if(_source){
-            sendSignal(++currentId);
+           if (sendSignal(currentId)) {
+               currentId += 2;
+           }
        }
        //ütemezés
        if(cutId != -1 && !hasNbrAtLabel(3) && !cutDone){
@@ -114,14 +116,11 @@ void ShortestPathForestParticle::activate()
        }
 
        if(numberOfCuts == numberOfSources && !regionSet && cutId  != -1){
-          if((!hasNbrAtLabel(3) || northCut)){
-            setRegion(++currentId,true,head.y, true);
-          }
-          if((!hasNbrAtLabel(3) || southCut)){
-            setRegion(++currentId,false,head.y, true);
+          if((!hasNbrAtLabel(3) || southCut || northCut)){
+            setRegion(true,cutId, true);
+            setRegion(false,cutId + 1, true);
           }
           regionSet = true;
-
        }
     }
 }

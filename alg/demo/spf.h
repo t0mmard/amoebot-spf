@@ -252,14 +252,16 @@ public:
         cutId = value;
     }
 
-    void sendSignal(int id){
-        setHasSourceOnPortal(id);
+    bool sendSignal(int id){
+        if (cutId != -1) return false;
+        cutId = id;
         if(hasNbrAtLabel(0) && nbrAtLabel(0).cutId == -1){
             nbrAtLabel(0).sendSignal(id);
         }
         if(hasNbrAtLabel(3) && nbrAtLabel(3).cutId == -1){
             nbrAtLabel(3).sendSignal(id);
         }
+        return true;
     }
 
 
@@ -291,52 +293,45 @@ public:
        return current;
     }
 
-    void setRegion(int idValue,bool north,int originalCutId, bool starting){ //észak vagy nyugat
+    void setRegion(bool north,int originalCutId, bool starting){ //észak vagy nyugat
+        int currentId = -1;
         for(int i =0;i<3;i++){
-            if ((id[0] != -1 && cutId == -1) || (id[0] != -1 && id[1] != -1 && !northCut && !southCut) || (id[i]==idValue)) {
+            if ((id[0] != -1 && cutId == -1) ||
+                 (id[0] != -1 && id[1] != -1 && !northCut && !southCut) ||
+                 (id[i]==originalCutId)) {
                 return;
+            } else if (id[i] == -1) {
+                currentId = i;
+                break;
             }
         }
 
-        if(north){
-            for(int i =0;i<3;i++){
-                if(id[i]==-1){
-                    id[i] = idValue;
-                    for (int j=0;j<6;j++){
-                        if(((j==1 || j==2) && cutId != -1 && cutId != originalCutId) || (northCut && !starting)){
-                            continue;
-                        }
-                        if((j==4 || j== 5) && cutId != -1 && cutId == originalCutId){
-                            continue;
-                        }
-                        if(hasNbrAtLabel(j)){
-                            nbrAtLabel(j).setRegion(idValue,north, originalCutId, false);
-                        }
+        id[currentId] = originalCutId;
 
-                    }
-                    break;
+        if(north){
+            for (int j=0;j<6;j++){
+                if(((j==1 || j==2 || j==4 || j== 5) && cutId != -1 && cutId != originalCutId) || (northCut && !starting)){
+                    continue;
+                }
+                if((j==4 || j== 5) && cutId != -1 && cutId == originalCutId){
+                    continue;
+                }
+                if(hasNbrAtLabel(j)){
+                    nbrAtLabel(j).setRegion(north, originalCutId, false);
                 }
             }
         } else {
-            for(int i =0;i<3;i++){
-                if(id[i]==-1){
-                    id[i] = idValue;
-                    for (int j=3;j<9;j++){
-                        if(((j%6==4 || j%6==5) && cutId != -1 && cutId != originalCutId) || (southCut && !starting)){
-                            continue;
-                        }
-                        if((j%6==1 || j%6== 2) && cutId != -1 &&  cutId == originalCutId){
-                            continue;
-                        }
-                        if(hasNbrAtLabel(j%6)){
-                            nbrAtLabel(j%6).setRegion(idValue,north, originalCutId, false);
-                        }
-
-                    }
-                    break;
+            for (int j=0;j<6;j++){
+                if(((j==1 || j==2 || j==4 || j==5) && cutId != -1 && cutId != originalCutId) || (southCut && !starting)){
+                    continue;
+                }
+                if((j==1 || j== 2) && cutId != -1 &&  cutId == originalCutId){
+                    continue;
+                }
+                if(hasNbrAtLabel(j)){
+                    nbrAtLabel(j).setRegion(north, originalCutId, false);
                 }
             }
-
         }
     }
 
