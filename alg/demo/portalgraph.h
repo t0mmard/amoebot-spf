@@ -337,7 +337,7 @@ public:
 
     }
 
-    PortalGraphParticle(const Node& head, const int orientation, const bool _leader, std::string portalGraph, AmoebotSystem& system);
+    PortalGraphParticle(const Node& head, const int orientation, const bool _leader, AmoebotSystem& system);
     void activate() override;
 
     int headMarkColor() const override;
@@ -395,8 +395,8 @@ class PortalGraphSystem : public AmoebotSystem {
 public:
     // Constructs a system of the specified number of PortalGraphDemoParticles.
     PortalGraphSystem(int numParticles = 30,
-                      int targetCount = 1,
-                      std::string portalGraph = "",int grid_size = 40);
+                      int sourceCount = 1,
+                      int targetCount = 1);
 };
 
 #endif  // AMOEBOTSIM_ALG_DEMO_PORTALGRAPH_H_

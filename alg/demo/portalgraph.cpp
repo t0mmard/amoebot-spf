@@ -12,6 +12,7 @@
 int maxDistance = 0;
 int numberOfParticles = 0;
 int numberOfTargets = 0;
+int numberOfSources = 0;
 
 //helper functions
 bool contains(const std::vector<int>& vec, int num) {
@@ -52,11 +53,9 @@ unsigned int getColor(int value, int limit) {
 PortalGraphParticle::PortalGraphParticle(const Node &head,
                                          const int orientation,
                                          const bool isLeader,
-                                         const std::string portalGraph,
                                          AmoebotSystem &system)
     : AmoebotParticle(head, -1, orientation, system)
 {
-    _portalGraph = portalGraph;
     _leader = isLeader;
 
     _distanceSet[X] = isLeader;
@@ -290,12 +289,14 @@ QString PortalGraphParticle::inspectionText() const
 }
 
 
-PortalGraphSystem::PortalGraphSystem(int numParticles, int targetCount, std::string portalGraph,int grid_size)
+PortalGraphSystem::PortalGraphSystem(int numParticles, int sourceCount, int targetCount)
 {
     //For visualization only
+    int grid_size = 40;
     maxDistance = 0;
     numberOfTargets = targetCount;
     numberOfParticles = numParticles;
+    numberOfSources = sourceCount;
     //For visualization only
     std::set<Node> occupied;
     occupied.insert(Node(grid_size/2,grid_size/2 ));
@@ -380,13 +381,16 @@ PortalGraphSystem::PortalGraphSystem(int numParticles, int targetCount, std::str
     std::shuffle(indices.begin(), indices.end(), gen);
 
     // Pick targets
-    std::vector<int> targetIndices(indices.begin() + 1, indices.begin() + 1 + targetCount);
+    std::vector<int> sourceIndices(indices.begin(), indices.begin() + sourceCount);
+    std::vector<int> targetIndices(indices.begin() + sourceCount, indices.begin() + sourceCount + targetCount);
 
     int i = 0;
 
     for (const auto &node : occupied)
     {
-        auto newParticle = new PortalGraphParticle(node, 0, i == indices[0], portalGraph, *this);
+        auto newParticle = new PortalGraphParticle(node, 0,
+                                                   std::find(sourceIndices.begin(), sourceIndices.end(), i) != sourceIndices.end(),
+                                                   *this);
         newParticle->isTarget = std::find(targetIndices.begin(), targetIndices.end(), i) != targetIndices.end();
         insert(newParticle);
         ++i;

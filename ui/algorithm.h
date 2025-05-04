@@ -57,7 +57,7 @@ class PortalGraphAlg : public Algorithm {
   PortalGraphAlg();
 
  public slots:
-  void instantiate(const int numParticles = 30, const int targetCount = 1);
+  void instantiate(const int numParticles = 30, const int sourceCount = 1, const int targetCount = 1);
 };
 
 

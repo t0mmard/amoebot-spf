@@ -83,12 +83,12 @@ void ShortestPathForestAlg::instantiate(const int numParticles) {
 
 PortalGraphAlg::PortalGraphAlg() : Algorithm("Shortest Path Forest", "portalgraph") {
   addParameter("# Particles", "30");
-  //addParameter("Grid size", "40");
+  addParameter("Number of sources", "1");
   addParameter("Number of targets", "1");
 };
 
-void PortalGraphAlg::instantiate(const int numParticles, const int targetCount) {
-  emit setSystem(std::make_shared<PortalGraphSystem>(numParticles, targetCount));
+void PortalGraphAlg::instantiate(const int numParticles, const int sourceCount, const int targetCount) {
+  emit setSystem(std::make_shared<PortalGraphSystem>(numParticles, sourceCount, targetCount));
 }
 
 
