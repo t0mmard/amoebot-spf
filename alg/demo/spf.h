@@ -61,7 +61,7 @@ const std::map<Axis, AxisData> axisMap = {
      }}
 };
 
-class PortalGraphParticle : public AmoebotParticle {
+class ShortestPathForestParticle : public AmoebotParticle {
 public:
     std::string groupId[2];
 
@@ -86,7 +86,7 @@ public:
     }
 
 
-    PortalGraphParticle& nbrAtLabel(int label) const;
+    ShortestPathForestParticle& nbrAtLabel(int label) const;
 
     void setPortalDistanceFromRoot(Axis axis, int value) {
         _portalDistanceFromRoot[axis] = value;
@@ -96,7 +96,7 @@ public:
         return _portalDistanceFromRoot.at(axis);
     }
 
-    int getPortalDistanceFromGiven(Axis axis,PortalGraphParticle given){
+    int getPortalDistanceFromGiven(Axis axis,ShortestPathForestParticle given){
         return abs(_portalDistanceFromRoot.at(axis) - given.getPortalDistanceFromRoot(axis));
     }
 
@@ -116,7 +116,7 @@ public:
         bool done = true;
         for (int i = 0; i < system.size() - 1; i++) {
             const Particle& p = system.at(i);
-            auto pgp = dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p));
+            auto pgp = dynamic_cast<ShortestPathForestParticle&>(const_cast<Particle&> (p));
             done = done && pgp.getPortalDirections(axis).size() > 0;
         }
         return done;
@@ -126,7 +126,7 @@ public:
         bool done = true;
         for (int i = 0; i < system.size() - 1; i++) {
             const Particle& p = system.at(i);
-            auto pgp = dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p));
+            auto pgp = dynamic_cast<ShortestPathForestParticle&>(const_cast<Particle&> (p));
             done = done && (pgp.parent != -1 || pgp._source);
         }
         return done;
@@ -166,7 +166,7 @@ public:
         return result;
     }
 
-    bool operator<(const PortalGraphParticle& other) const {
+    bool operator<(const ShortestPathForestParticle& other) const {
         // Compare based on x-coordinate first
         if (head.x != other.head.x) {
             return head.x < other.head.x;
@@ -285,9 +285,9 @@ public:
         outedge[index]= value;
     }
 
-    void visibility(std::set<PortalGraphParticle>& P){
+    void visibility(std::set<ShortestPathForestParticle>& P){
 
-           for (PortalGraphParticle p : P) {
+           for (ShortestPathForestParticle p : P) {
                     if (getPortalDistanceFromGiven(Y, p) == 0) {
                         // Correct access to the 3rd and 4th elements of the tuple
                         propParentY = &p;
@@ -337,7 +337,7 @@ public:
 
     }
 
-    PortalGraphParticle(const Node& head, const int orientation, const bool _source, AmoebotSystem& system);
+    ShortestPathForestParticle(const Node& head, const int orientation, const bool _source, AmoebotSystem& system);
     void activate() override;
 
     int headMarkColor() const override;
@@ -359,7 +359,7 @@ protected:
     bool eulerDone = false;
 
 private:
-    friend class PortalGraphSystem;
+    friend class ShortestPathForestSystem;
 
     bool _source; // root amoebot
     bool _neighboursSet = false; //has gone through distance propagation
@@ -367,12 +367,12 @@ private:
     int inedge[6] = {-1,-1,-1,-1,-1,-1};
     int outedge[6] = {-1,-1,-1,-1,-1,-1};
 
-    PortalGraphParticle* propParentY;
+    ShortestPathForestParticle* propParentY;
     int propDistanceFromparentY = -1;
-    PortalGraphParticle* propParentZ;
+    ShortestPathForestParticle* propParentZ;
     int propDistanceFromparentZ = -1;
     int distance = 0;
-    PortalGraphParticle* propparent;
+    ShortestPathForestParticle* propparent;
 
     void calculatePortalDistance();
     void chooseParent();
@@ -391,12 +391,14 @@ private:
     std::map<Axis,bool> _distanceSet; //distance from root set by neighbour
 };
 
-class PortalGraphSystem : public AmoebotSystem {
+class ShortestPathForestSystem : public AmoebotSystem {
 public:
     // Constructs a system of the specified number of PortalGraphDemoParticles.
-    PortalGraphSystem(int numParticles = 30,
+    ShortestPathForestSystem(int numParticles = 30,
                       int sourceCount = 1,
                       int targetCount = 1);
 };
+
+bool dfsPathExists(const std::set<Node>& graph, const Node& start, const Node& target,std::set<Node>& visited);
 
 #endif  // AMOEBOTSIM_ALG_DEMO_PORTALGRAPH_H_

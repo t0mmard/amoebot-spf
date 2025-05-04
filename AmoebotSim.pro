@@ -13,7 +13,7 @@ HEADERS += \
     alg/demo/discodemo.h \
     alg/demo/dynamicdemo.h \
     alg/demo/metricsdemo.h \
-    alg/demo/portalgraph.h \
+    alg/demo/spf.h \
     alg/demo/tokendemo.h \
     alg/aggregation.h \
     alg/compression.h \
@@ -25,7 +25,6 @@ HEADERS += \
     alg/infobjcoating.h \
     alg/leaderelectionbyerosion.h \
     alg/shapeformation.h \
-    alg/shortpathforest.h \
     core/amoebotparticle.h \
     core/amoebotsystem.h \
     core/localparticle.h \
@@ -51,7 +50,7 @@ SOURCES += \
     alg/demo/discodemo.cpp \
     alg/demo/dynamicdemo.cpp \
     alg/demo/metricsdemo.cpp \
-    alg/demo/portalgraph.cpp \
+    alg/demo/spf.cpp \
     alg/demo/tokendemo.cpp \
     alg/aggregation.cpp \
     alg/compression.cpp \
@@ -63,7 +62,6 @@ SOURCES += \
     alg/infobjcoating.cpp \
     alg/leaderelectionbyerosion.cpp \
     alg/shapeformation.cpp \
-    alg/shortpathforest.cpp \
     core/amoebotparticle.cpp \
     core/amoebotsystem.cpp \
     core/localparticle.cpp \

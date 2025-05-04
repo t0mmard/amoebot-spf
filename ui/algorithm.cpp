@@ -20,8 +20,7 @@
 #include "alg/leaderelection.h"
 #include "alg/leaderelectionbyerosion.h"
 #include "alg/shapeformation.h"
-#include "alg/shortpathforest.h"
-#include "alg/demo/portalgraph.h"
+#include "alg/demo/spf.h"
 
 Algorithm::Algorithm(QString name, QString signature)
     : _name(name),
@@ -88,7 +87,7 @@ PortalGraphAlg::PortalGraphAlg() : Algorithm("Shortest Path Forest", "portalgrap
 };
 
 void PortalGraphAlg::instantiate(const int numParticles, const int sourceCount, const int targetCount) {
-  emit setSystem(std::make_shared<PortalGraphSystem>(numParticles, sourceCount, targetCount));
+  emit setSystem(std::make_shared<ShortestPathForestSystem>(numParticles, sourceCount, targetCount));
 }
 
 

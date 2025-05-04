@@ -2,8 +2,7 @@
  * The full GNU GPLv3 can be found in the LICENSE file, and the full copyright
  * notice can be found at the top of main/main.cpp. */
 
-#include "alg/demo/portalgraph.h"
-#include "alg/shortpathforest.h"
+#include "alg/demo/spf.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -50,7 +49,7 @@ unsigned int getColor(int value, int limit) {
 }
 
 
-PortalGraphParticle::PortalGraphParticle(const Node &head,
+ShortestPathForestParticle::ShortestPathForestParticle(const Node &head,
                                          const int orientation,
                                          const bool isSource,
                                          AmoebotSystem &system)
@@ -72,7 +71,7 @@ PortalGraphParticle::PortalGraphParticle(const Node &head,
 }
 
 
-void PortalGraphParticle::activate()
+void ShortestPathForestParticle::activate()
 {
     initializePortalGraph();
     calculatePortalDistance();
@@ -81,7 +80,7 @@ void PortalGraphParticle::activate()
     prune();
 }
 
-void PortalGraphParticle::prune() {
+void ShortestPathForestParticle::prune() {
     if (!_source && !eulerDone) {
         return;
     } else if (!_source && eulerDone && !visited) {
@@ -93,7 +92,7 @@ void PortalGraphParticle::prune() {
 }
 
 
-void PortalGraphParticle::initializePortalGraph() {
+void ShortestPathForestParticle::initializePortalGraph() {
     if (getPortalDirections(Axis::X).size() != 0) {
         return;
     }
@@ -103,7 +102,7 @@ void PortalGraphParticle::initializePortalGraph() {
     portalSet = true;
 }
 
-void PortalGraphParticle::createPortalGraph(Axis axis) {
+void ShortestPathForestParticle::createPortalGraph(Axis axis) {
     AxisData axisData = axisMap.at(axis);
     //add main axis
     for(int i = 0; i< 2; ++i) {
@@ -146,7 +145,7 @@ void PortalGraphParticle::createPortalGraph(Axis axis) {
 
 
 
-void PortalGraphParticle::calculatePortalDistance() {
+void ShortestPathForestParticle::calculatePortalDistance() {
     if (_neighboursSet) {
         return;
     }
@@ -170,7 +169,7 @@ void PortalGraphParticle::calculatePortalDistance() {
     _neighboursSet = neighboursSet;
 }
 
-void PortalGraphParticle::chooseParent() {
+void ShortestPathForestParticle::chooseParent() {
     if (_source || !_neighboursSet || !neighboursFinished() || parent != NONE) {
         return;
     }
@@ -192,12 +191,12 @@ void PortalGraphParticle::chooseParent() {
 }
 
 
-PortalGraphParticle& PortalGraphParticle::nbrAtLabel(int label) const {
-    return AmoebotParticle::nbrAtLabel<PortalGraphParticle>(label);
+ShortestPathForestParticle& ShortestPathForestParticle::nbrAtLabel(int label) const {
+    return AmoebotParticle::nbrAtLabel<ShortestPathForestParticle>(label);
 }
 
 
-int PortalGraphParticle::headMarkColor() const
+int ShortestPathForestParticle::headMarkColor() const
 {
     if (_source) {
         return 0x0000FF;
@@ -212,18 +211,18 @@ int PortalGraphParticle::headMarkColor() const
     }
 }
 
-int PortalGraphParticle::headMarkDir() const {
+int ShortestPathForestParticle::headMarkDir() const {
     return _headMarkDir;
 }
 
-int PortalGraphParticle::tailMarkColor() const
+int ShortestPathForestParticle::tailMarkColor() const
 {
     return headMarkColor();
 }
 
 
 
-QString PortalGraphParticle::inspectionText() const
+QString ShortestPathForestParticle::inspectionText() const
 {
     QString text;
     text += "X portal graph neighbours: ";
@@ -283,8 +282,31 @@ QString PortalGraphParticle::inspectionText() const
     return text;
 }
 
+bool dfsPathExists(const std::set<Node>& graph, const Node& start, const Node& target,std::set<Node>& visited){
+    if (start.x == target.x && start.y == target.y)
+            return true; // Found the target
 
-PortalGraphSystem::PortalGraphSystem(int numParticles, int sourceCount, int targetCount)
+    visited.insert(start);
+
+    // Possible moves: left, right, up, down (assuming a grid-based movement)
+    std::vector<Node> neighbors = {
+        {start.x + 1, start.y}, {start.x - 1, start.y},
+        {start.x, start.y + 1}, {start.x, start.y - 1},
+        {start.x+1,start.y-1}, {start.x-1, start.y+1}
+    };
+
+    for (const Node& neighbor : neighbors) {
+        if (graph.find(neighbor) != graph.end() && visited.find(neighbor) == visited.end()) {
+            if (dfsPathExists(graph, neighbor, target, visited))
+                return true;
+        }
+    }
+    return false;
+}
+
+
+
+ShortestPathForestSystem::ShortestPathForestSystem(int numParticles, int sourceCount, int targetCount)
 {
     //For visualization only
     int grid_size = 40;
@@ -383,7 +405,7 @@ PortalGraphSystem::PortalGraphSystem(int numParticles, int sourceCount, int targ
 
     for (const auto &node : occupied)
     {
-        auto newParticle = new PortalGraphParticle(node, 0,
+        auto newParticle = new ShortestPathForestParticle(node, 0,
                                                    std::find(sourceIndices.begin(), sourceIndices.end(), i) != sourceIndices.end(),
                                                    *this);
         newParticle->isTarget = std::find(targetIndices.begin(), targetIndices.end(), i) != targetIndices.end();
