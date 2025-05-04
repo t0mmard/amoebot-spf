@@ -248,17 +248,17 @@ public:
         nbrAtLabel(direction).eulerTour(value, nbrDirection, axis);
     }
 
-    void setHasSourceOnPortal(bool value){
-        hasSourceOnPortal = value;
+    void setHasSourceOnPortal(int value){
+        cutId = value;
     }
 
-    void sendSignal(){
-        setHasSourceOnPortal(true);
-        if(hasNbrAtLabel(0) && !nbrAtLabel(0).hasSourceOnPortal){
-            nbrAtLabel(0).sendSignal();
+    void sendSignal(int id){
+        setHasSourceOnPortal(id);
+        if(hasNbrAtLabel(0) && !nbrAtLabel(0).cutId){
+            nbrAtLabel(0).sendSignal(id);
         }
-        if(hasNbrAtLabel(3) && !nbrAtLabel(3).hasSourceOnPortal){
-            nbrAtLabel(3).sendSignal();
+        if(hasNbrAtLabel(3) && !nbrAtLabel(3).cutId){
+            nbrAtLabel(3).sendSignal(id);
         }
     }
 
@@ -291,9 +291,9 @@ public:
        return current;
     }
 
-    void setRegion(int idValue,bool north,int y_pos, bool starting){ //észak vagy nyugat
+    void setRegion(int idValue,bool north,int originalCutId, bool starting){ //észak vagy nyugat
         for(int i =0;i<3;i++){
-            if ((id[0] != -1 && !hasSourceOnPortal) || (id[0] != -1 && id[1] != -1 && !northCut && !southCut) || (id[i]==idValue)) {
+            if ((id[0] != -1 && !cutId) || (id[0] != -1 && id[1] != -1 && !northCut && !southCut) || (id[i]==idValue)) {
                 return;
             }
         }
@@ -303,14 +303,14 @@ public:
                 if(id[i]==-1){
                     id[i] = idValue;
                     for (int j=0;j<6;j++){
-                        if(((j==1 || j==2) && hasSourceOnPortal && head.y!= y_pos) || (northCut && !starting)){
+                        if(((j==1 || j==2) && cutId && cutId != originalCutId) || (northCut && !starting)){
                             continue;
                         }
-                        if((j==4 || j== 5) && hasSourceOnPortal && head.y== y_pos){
+                        if((j==4 || j== 5) && cutId && cutId == originalCutId){
                             continue;
                         }
                         if(hasNbrAtLabel(j)){
-                            nbrAtLabel(j).setRegion(idValue,north,y_pos, false);
+                            nbrAtLabel(j).setRegion(idValue,north, originalCutId, false);
                         }
 
                     }
@@ -322,14 +322,14 @@ public:
                 if(id[i]==-1){
                     id[i] = idValue;
                     for (int j=3;j<9;j++){
-                        if(((j%6==4 || j%6==5) && hasSourceOnPortal && head.y != y_pos) || (southCut && !starting)){
+                        if(((j%6==4 || j%6==5) && cutId && cutId != originalCutId) || (southCut && !starting)){
                             continue;
                         }
-                        if((j%6==1 || j%6== 2) && hasSourceOnPortal && head.y== y_pos){
+                        if((j%6==1 || j%6== 2) && cutId &&  cutId == originalCutId){
                             continue;
                         }
                         if(hasNbrAtLabel(j%6)){
-                            nbrAtLabel(j%6).setRegion(idValue,north,y_pos, false);
+                            nbrAtLabel(j%6).setRegion(idValue,north, originalCutId, false);
                         }
 
                     }
@@ -440,7 +440,7 @@ public:
     bool isTarget = false;
     bool visited = false;
     bool isTargetused = false;
-    bool hasSourceOnPortal =false;
+    int cutId = -1;
     bool northCut = false;
     bool southCut = false;
     bool cutDone = false;

@@ -106,14 +106,14 @@ void ShortestPathForestParticle::activate()
     } else {
         initializePortalGraph();
        if(_source){
-            sendSignal();
+            sendSignal(++currentId);
        }
        //ütemezés
-       if(hasSourceOnPortal && !hasNbrAtLabel(3) && !cutDone){
+       if(cutId && !hasNbrAtLabel(3) && !cutDone){
             numberOfCuts += cutPortal(true);
        }
 
-       if(numberOfCuts == numberOfSources && !regionSet && hasSourceOnPortal){
+       if(numberOfCuts == numberOfSources && !regionSet && cutId){
           if((!hasNbrAtLabel(3) || northCut)){
             setRegion(++currentId,true,head.y, true);
           }
@@ -334,7 +334,7 @@ QString ShortestPathForestParticle::inspectionText() const
     text += "\n";
 
     text += "Has Source in portal: ";
-    text += QString::number(hasSourceOnPortal);
+    text += QString::number(cutId);
     text += "\n";
     text += "\n";
 
