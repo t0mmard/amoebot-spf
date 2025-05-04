@@ -73,11 +73,15 @@ ShortestPathForestParticle::ShortestPathForestParticle(const Node &head,
 
 void ShortestPathForestParticle::activate()
 {
-    initializePortalGraph();
-    calculatePortalDistance();
-    chooseParent();
+    if (numberOfSources == 1) {
+        initializePortalGraph();
+        calculatePortalDistance();
+        chooseParent();
 
-    prune();
+        prune();
+    } else {
+        initializePortalGraph();
+    }
 }
 
 void ShortestPathForestParticle::prune() {
