@@ -297,7 +297,7 @@ public:
         }
 
         for(int i =0;i<3;i++){
-            if ((id[0] != -1 && !hasSourceOnPortal) || (id[0] != -1 && id[1] != -1 && (northCut || southCut))) {
+            if ((id[0] != -1 && !hasSourceOnPortal) || (id[0] != -1 && id[1] != -1 && !northCut && !southCut)) {
                 return;
             }
         }
@@ -310,7 +310,7 @@ public:
                 if(id[i]==-1){
                     id[i] = idValue;
                     for (int j=0;j<4;j++){
-                        if((j==1 || j==2) && hasSourceOnPortal && head.y != y_pos || northCut){
+                        if(((j==1 || j==2) && hasSourceOnPortal && head.y != y_pos) || northCut){
                             continue;
                         }
                         if(hasNbrAtLabel(j)){
@@ -329,7 +329,7 @@ public:
                 if(id[i]==-1){
                     id[i] = idValue;
                     for (int j=3;j<7;j++){
-                        if((j%6==4 || j%6==5) && hasSourceOnPortal && head.y != y_pos || southCut){
+                        if(((j%6==4 || j%6==5) && hasSourceOnPortal && head.y != y_pos) || southCut){
                             continue;
                         }
                         if(hasNbrAtLabel(j%6)){

@@ -92,7 +92,7 @@ void ShortestPathForestParticle::activate()
             numberOfCuts += cutPortal(true);
        }
 
-       if(numberOfCuts == numberOfSources && !regionSet){
+       if(numberOfCuts == numberOfSources && !regionSet && hasSourceOnPortal && !hasNbrAtLabel(3)){
           setRegion(++currentId,true,head.y);
           setRegion(++currentId,false,head.y);
        }
