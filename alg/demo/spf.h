@@ -248,6 +248,20 @@ public:
         nbrAtLabel(direction).eulerTour(value, nbrDirection, axis);
     }
 
+    void setHasSourceOnPortal(bool value){
+        hasSourceOnPortal = value;
+    }
+
+    void sendSignal(){
+        setHasSourceOnPortal(true);
+        if(hasNbrAtLabel(0) && !nbrAtLabel(0).hasSourceOnPortal){
+            nbrAtLabel(0).sendSignal();
+        }
+        if(hasNbrAtLabel(3) && !nbrAtLabel(3).hasSourceOnPortal){
+            nbrAtLabel(3).sendSignal();
+        }
+    }
+
     void rootPruning() {
         noTargetinPath();
         visited = true;
@@ -347,6 +361,7 @@ public:
     bool isTarget = false;
     bool visited = false;
     bool isTargetused = false;
+    bool hasSourceOnPortal =false;
 
     // Returns the string to be displayed when this particle is inspected; used to
     // snapshot the current values of this particle's memory at runtime.

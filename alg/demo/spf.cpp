@@ -81,6 +81,9 @@ void ShortestPathForestParticle::activate()
         prune();
     } else {
         initializePortalGraph();
+       if(_source){
+            sendSignal();
+        }
     }
 }
 
@@ -258,6 +261,8 @@ QString ShortestPathForestParticle::inspectionText() const
     text += "\n";
     text += "Outedge: ";
 
+
+
     QString strList2;
     for (int i = 0; i < 6; ++i) {
         strList2 += QString::number(getOutedge(i));
@@ -281,6 +286,11 @@ QString ShortestPathForestParticle::inspectionText() const
 
     text += "Parent amoebot: ";
     text += directionToString(parent);
+    text += "\n";
+
+    text += "Has Source in portal: ";
+    text += QString::number(hasSourceOnPortal);
+    text += "\n";
     text += "\n";
 
     return text;
