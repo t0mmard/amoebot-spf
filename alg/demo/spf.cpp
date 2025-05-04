@@ -21,6 +21,27 @@ bool contains(const std::vector<int>& vec, int num) {
     return std::find(vec.begin(), vec.end(), num) != vec.end();
 }
 
+uint32_t hashID(int id) {
+    uint32_t x = static_cast<uint32_t>(id);
+    x ^= x >> 16;
+    x *= 0x85ebca6b;
+    x ^= x >> 13;
+    x *= 0xc2b2ae35;
+    x ^= x >> 16;
+    return x;
+}
+
+// Return a color in 0xRRGGBB format
+uint32_t getColorFromID(int id) {
+    uint32_t hash = hashID(id);
+
+    int r = (hash >> 16) & 0xFF;
+    int g = (hash >> 8)  & 0xFF;
+    int b = (hash)       & 0xFF;
+
+    return (r << 16) | (g << 8) | b;
+}
+
 QString directionToString(Direction dir) {
     switch (dir) {
     case WEST: return "WEST";
@@ -220,7 +241,13 @@ int ShortestPathForestParticle::headMarkColor() const
 {
     if (_source) {
         return 0x0000FF;
-    } else if (isTarget && numberOfTargets < numberOfParticles - 1) {
+    }
+
+    if (id[0] != -1) {
+        return getColorFromID(id[0]);
+    }
+    return -1;
+    /*else if (isTarget && numberOfTargets < numberOfParticles - 1) {
         return 0xFF10F0;
     } else if(visited && !connectedAmoebot() && parent != NONE){
         return 0xA9A9A9;
@@ -228,7 +255,7 @@ int ShortestPathForestParticle::headMarkColor() const
         return getColor(((getPortalDistanceFromRoot(X) + getPortalDistanceFromRoot(Y) + getPortalDistanceFromRoot(Z))/2), maxDistance);
     } else {
         return -1;
-    }
+    }*/
 }
 
 int ShortestPathForestParticle::headMarkDir() const {
