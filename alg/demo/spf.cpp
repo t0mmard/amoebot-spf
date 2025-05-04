@@ -109,11 +109,11 @@ void ShortestPathForestParticle::activate()
             sendSignal(++currentId);
        }
        //ütemezés
-       if(cutId && !hasNbrAtLabel(3) && !cutDone){
+       if(cutId != -1 && !hasNbrAtLabel(3) && !cutDone){
             numberOfCuts += cutPortal(true);
        }
 
-       if(numberOfCuts == numberOfSources && !regionSet && cutId){
+       if(numberOfCuts == numberOfSources && !regionSet && cutId  != -1){
           if((!hasNbrAtLabel(3) || northCut)){
             setRegion(++currentId,true,head.y, true);
           }

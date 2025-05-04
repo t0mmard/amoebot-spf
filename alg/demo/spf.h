@@ -254,10 +254,10 @@ public:
 
     void sendSignal(int id){
         setHasSourceOnPortal(id);
-        if(hasNbrAtLabel(0) && !nbrAtLabel(0).cutId){
+        if(hasNbrAtLabel(0) && nbrAtLabel(0).cutId == -1){
             nbrAtLabel(0).sendSignal(id);
         }
-        if(hasNbrAtLabel(3) && !nbrAtLabel(3).cutId){
+        if(hasNbrAtLabel(3) && nbrAtLabel(3).cutId == -1){
             nbrAtLabel(3).sendSignal(id);
         }
     }
@@ -293,7 +293,7 @@ public:
 
     void setRegion(int idValue,bool north,int originalCutId, bool starting){ //észak vagy nyugat
         for(int i =0;i<3;i++){
-            if ((id[0] != -1 && !cutId) || (id[0] != -1 && id[1] != -1 && !northCut && !southCut) || (id[i]==idValue)) {
+            if ((id[0] != -1 && cutId == -1) || (id[0] != -1 && id[1] != -1 && !northCut && !southCut) || (id[i]==idValue)) {
                 return;
             }
         }
@@ -303,10 +303,10 @@ public:
                 if(id[i]==-1){
                     id[i] = idValue;
                     for (int j=0;j<6;j++){
-                        if(((j==1 || j==2) && cutId && cutId != originalCutId) || (northCut && !starting)){
+                        if(((j==1 || j==2) && cutId != -1 && cutId != originalCutId) || (northCut && !starting)){
                             continue;
                         }
-                        if((j==4 || j== 5) && cutId && cutId == originalCutId){
+                        if((j==4 || j== 5) && cutId != -1 && cutId == originalCutId){
                             continue;
                         }
                         if(hasNbrAtLabel(j)){
@@ -322,10 +322,10 @@ public:
                 if(id[i]==-1){
                     id[i] = idValue;
                     for (int j=3;j<9;j++){
-                        if(((j%6==4 || j%6==5) && cutId && cutId != originalCutId) || (southCut && !starting)){
+                        if(((j%6==4 || j%6==5) && cutId != -1 && cutId != originalCutId) || (southCut && !starting)){
                             continue;
                         }
-                        if((j%6==1 || j%6== 2) && cutId &&  cutId == originalCutId){
+                        if((j%6==1 || j%6== 2) && cutId != -1 &&  cutId == originalCutId){
                             continue;
                         }
                         if(hasNbrAtLabel(j%6)){
