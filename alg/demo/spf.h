@@ -262,6 +262,33 @@ public:
         }
     }
 
+
+    void cutPortal(bool first){
+       if(!first){
+           if(_source && !hasNbrAtLabel(2)){
+               northCut =true;
+           }
+           if(_source && !hasNbrAtLabel(4)){
+               southCut = true;
+           }
+           if(hasNbrAtLabel(0)){
+               nbrAtLabel(0).cutPortal(false);
+           }
+       }
+       else{
+           if(hasNbrAtLabel(0) && _source){
+               nbrAtLabel(0).cutPortal(false);
+           }
+           else if(hasNbrAtLabel(0)){
+               nbrAtLabel(0).cutPortal(true);
+           }
+
+       }
+
+
+    }
+
+
     void rootPruning() {
         noTargetinPath();
         visited = true;
@@ -362,6 +389,8 @@ public:
     bool visited = false;
     bool isTargetused = false;
     bool hasSourceOnPortal =false;
+    bool northCut = false;
+    bool southCut = false;
 
     // Returns the string to be displayed when this particle is inspected; used to
     // snapshot the current values of this particle's memory at runtime.

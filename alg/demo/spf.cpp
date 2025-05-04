@@ -84,6 +84,9 @@ void ShortestPathForestParticle::activate()
        if(_source){
             sendSignal();
         }
+       if(hasSourceOnPortal && !hasNbrAtLabel(3)){
+            cutPortal(true);
+       }
     }
 }
 
@@ -290,6 +293,16 @@ QString ShortestPathForestParticle::inspectionText() const
 
     text += "Has Source in portal: ";
     text += QString::number(hasSourceOnPortal);
+    text += "\n";
+    text += "\n";
+
+    text += "North cut portal: ";
+    text += QString::number(northCut);
+    text += "\n";
+    text += "\n";
+
+    text += "South cut portal: ";
+    text += QString::number(southCut);
     text += "\n";
     text += "\n";
 
