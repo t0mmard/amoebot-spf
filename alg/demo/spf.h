@@ -291,6 +291,52 @@ public:
        return current;
     }
 
+    void setRegion(int idValue,bool north,int y_pos){ //észak vagy nyugat
+        if(north){
+            for(int i =0;i<3;i++){
+                if(id[i]==idValue){
+                    break;
+                }
+                if(id[i]==-1){
+                    id[i] = idValue;
+                    for (int j=0;j<4;j++){
+                        if((j==1 || j==2) && hasSourceOnPortal && head.y != y_pos){
+                            continue;
+                        }
+                        if(hasNbrAtLabel(j)){
+                            nbrAtLabel(j).setRegion(idValue,north,y_pos);
+                        }
+
+                    }
+                    break;
+                }
+
+            }
+        }else{
+
+            for(int i =0;i<3;i++){
+                if(id[i]==idValue){
+                    break;
+                }
+                if(id[i]==-1){
+                    id[i] = idValue;
+                    for (int j=3;j<7;j++){
+                        if((j%6==4 || j%6==5) && hasSourceOnPortal && head.y != y_pos){
+                            continue;
+                        }
+                        if(hasNbrAtLabel(j%6)){
+                            nbrAtLabel(j%6).setRegion(idValue,north,y_pos);
+                        }
+
+                    }
+                    break;
+                }
+
+            }
+
+        }
+    }
+
 
     void rootPruning() {
         noTargetinPath();
@@ -414,6 +460,7 @@ private:
 
     int inedge[6] = {-1,-1,-1,-1,-1,-1};
     int outedge[6] = {-1,-1,-1,-1,-1,-1};
+    int id[3] = {-1,-1,-1};
 
     ShortestPathForestParticle* propParentY;
     int propDistanceFromparentY = -1;

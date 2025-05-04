@@ -13,6 +13,7 @@ int numberOfParticles = 0;
 int numberOfTargets = 0;
 int numberOfSources = 0;
 int numberOfCuts = 0;
+int currentId = 0;
 
 
 //helper functions
@@ -89,13 +90,11 @@ void ShortestPathForestParticle::activate()
        //ütemezés
        if(hasSourceOnPortal && !hasNbrAtLabel(3) && !cutDone){
             numberOfCuts += cutPortal(true);
-
-
        }
-       std::cout << numberOfCuts << std::endl;
 
        if(numberOfCuts == numberOfSources){
-           std::cout << "Sikeres";
+          setRegion(++currentId,true,head.y);
+          setRegion(++currentId,false,head.y);
        }
 
     }
@@ -314,6 +313,18 @@ QString ShortestPathForestParticle::inspectionText() const
 
     text += "South cut portal: ";
     text += QString::number(southCut);
+    text += "\n";
+    text += "\n";
+
+
+    text += "Region ids: ";
+
+    QString strList3;
+    for (int i = 0; i < 3; ++i) {
+        strList3 += QString::number(id[i]);
+        strList3 += ", ";
+    }
+    text += strList3;
     text += "\n";
     text += "\n";
 
