@@ -291,29 +291,26 @@ public:
        return current;
     }
 
-    void setRegion(int idValue,bool north,int y_pos){ //észak vagy nyugat
+    void setRegion(int idValue,bool north,int y_pos, bool starting){ //észak vagy nyugat
         for(int i =0;i<3;i++){
-            if ((id[0] != -1 && !hasSourceOnPortal) || (id[0] != -1 && id[1] != -1 && !northCut && !southCut)) {
+            if ((id[0] != -1 && !hasSourceOnPortal) || (id[0] != -1 && id[1] != -1 && !northCut && !southCut) || (id[i]==idValue)) {
                 return;
             }
         }
 
         if(north){
             for(int i =0;i<3;i++){
-                if (id[i]==idValue) {
-                    break;
-                }
                 if(id[i]==-1){
                     id[i] = idValue;
                     for (int j=0;j<6;j++){
-                        if(((j==1 || j==2 || j==4 || j== 5) && hasSourceOnPortal && head.y!= y_pos) || northCut){
+                        if(((j==1 || j==2) && hasSourceOnPortal && head.y!= y_pos) || (northCut && !starting)){
                             continue;
                         }
                         if((j==4 || j== 5) && hasSourceOnPortal && head.y== y_pos){
                             continue;
                         }
                         if(hasNbrAtLabel(j)){
-                            nbrAtLabel(j).setRegion(idValue,north,y_pos);
+                            nbrAtLabel(j).setRegion(idValue,north,y_pos, false);
                         }
 
                     }
@@ -322,20 +319,17 @@ public:
             }
         } else {
             for(int i =0;i<3;i++){
-                if (id[i]==idValue) {
-                    break;
-                }
                 if(id[i]==-1){
                     id[i] = idValue;
                     for (int j=3;j<9;j++){
-                        if(((j%6==4 || j%6==5 ||  j%6==1 || j%6== 2) && hasSourceOnPortal && head.y != y_pos) || southCut){
+                        if(((j%6==4 || j%6==5) && hasSourceOnPortal && head.y != y_pos) || (southCut && !starting)){
                             continue;
                         }
                         if((j%6==1 || j%6== 2) && hasSourceOnPortal && head.y== y_pos){
                             continue;
                         }
                         if(hasNbrAtLabel(j%6)){
-                            nbrAtLabel(j%6).setRegion(idValue,north,y_pos);
+                            nbrAtLabel(j%6).setRegion(idValue,north,y_pos, false);
                         }
 
                     }

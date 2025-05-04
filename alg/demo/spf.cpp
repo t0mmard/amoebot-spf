@@ -115,19 +115,14 @@ void ShortestPathForestParticle::activate()
 
        if(numberOfCuts == numberOfSources && !regionSet && hasSourceOnPortal){
           if((!hasNbrAtLabel(3) || northCut)){
-            setRegion(++currentId,true,head.y);
+            setRegion(++currentId,true,head.y, true);
           }
           if((!hasNbrAtLabel(3) || southCut)){
-            setRegion(++currentId,false,head.y);
+            setRegion(++currentId,false,head.y, true);
           }
           regionSet = true;
 
        }
-
-
-
-
-
     }
 }
 
