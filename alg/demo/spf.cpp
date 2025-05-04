@@ -12,6 +12,8 @@ int maxDistance = 0;
 int numberOfParticles = 0;
 int numberOfTargets = 0;
 int numberOfSources = 0;
+int numberOfCuts = 0;
+
 
 //helper functions
 bool contains(const std::vector<int>& vec, int num) {
@@ -83,10 +85,19 @@ void ShortestPathForestParticle::activate()
         initializePortalGraph();
        if(_source){
             sendSignal();
-        }
-       if(hasSourceOnPortal && !hasNbrAtLabel(3)){
-            cutPortal(true);
        }
+       //ütemezés
+       if(hasSourceOnPortal && !hasNbrAtLabel(3) && !cutDone){
+            numberOfCuts += cutPortal(true);
+
+
+       }
+       std::cout << numberOfCuts << std::endl;
+
+       if(numberOfCuts == numberOfSources){
+           std::cout << "Sikeres";
+       }
+
     }
 }
 
@@ -341,6 +352,7 @@ ShortestPathForestSystem::ShortestPathForestSystem(int numParticles, int sourceC
     numberOfTargets = targetCount;
     numberOfParticles = numParticles;
     numberOfSources = sourceCount;
+    numberOfCuts = 0;
     //For visualization only
     std::set<Node> occupied;
     occupied.insert(Node(grid_size/2,grid_size/2 ));

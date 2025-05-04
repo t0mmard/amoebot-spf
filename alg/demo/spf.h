@@ -263,7 +263,8 @@ public:
     }
 
 
-    void cutPortal(bool first){
+    int cutPortal(bool first){
+       cutDone = true;
        if(!first){
            if(_source && !hasNbrAtLabel(2)){
                northCut =true;
@@ -272,16 +273,17 @@ public:
                southCut = true;
            }
            if(hasNbrAtLabel(0)){
-               nbrAtLabel(0).cutPortal(false);
+                return _source ? 1+ nbrAtLabel(0).cutPortal(false) : nbrAtLabel(0).cutPortal(false);
            }
        }
        else{
            if(hasNbrAtLabel(0) && _source){
-               nbrAtLabel(0).cutPortal(false);
+               return 1 + nbrAtLabel(0).cutPortal(false);
            }
            else if(hasNbrAtLabel(0)){
-               nbrAtLabel(0).cutPortal(true);
+               return nbrAtLabel(0).cutPortal(true);
            }
+           return _source ? 1 : 0;
 
        }
 
@@ -391,6 +393,7 @@ public:
     bool hasSourceOnPortal =false;
     bool northCut = false;
     bool southCut = false;
+    bool cutDone = false;
 
     // Returns the string to be displayed when this particle is inspected; used to
     // snapshot the current values of this particle's memory at runtime.
