@@ -292,10 +292,6 @@ public:
     }
 
     void setRegion(int idValue,bool north,int y_pos){ //észak vagy nyugat
-        if (head.y == y_pos) {
-            regionSet = true;
-        }
-
         for(int i =0;i<3;i++){
             if ((id[0] != -1 && !hasSourceOnPortal) || (id[0] != -1 && id[1] != -1 && !northCut && !southCut)) {
                 return;
@@ -309,8 +305,11 @@ public:
                 }
                 if(id[i]==-1){
                     id[i] = idValue;
-                    for (int j=0;j<4;j++){
-                        if(((j==1 || j==2) && hasSourceOnPortal && head.y != y_pos) || northCut){
+                    for (int j=0;j<6;j++){
+                        if(((j==1 || j==2 || j==4 || j== 5) && hasSourceOnPortal && head.y!= y_pos) || northCut){
+                            continue;
+                        }
+                        if((j==4 || j== 5) && hasSourceOnPortal && head.y== y_pos){
                             continue;
                         }
                         if(hasNbrAtLabel(j)){
@@ -328,8 +327,11 @@ public:
                 }
                 if(id[i]==-1){
                     id[i] = idValue;
-                    for (int j=3;j<7;j++){
-                        if(((j%6==4 || j%6==5) && hasSourceOnPortal && head.y != y_pos) || southCut){
+                    for (int j=3;j<9;j++){
+                        if(((j%6==4 || j%6==5 ||  j%6==1 || j%6== 2) && hasSourceOnPortal && head.y != y_pos) || southCut){
+                            continue;
+                        }
+                        if((j%6==1 || j%6== 2) && hasSourceOnPortal && head.y== y_pos){
                             continue;
                         }
                         if(hasNbrAtLabel(j%6)){
