@@ -265,6 +265,7 @@ public:
 
     int cutPortal(bool first){
        cutDone = true;
+       int current = 0;
        if(!first){
            if(_source && !hasNbrAtLabel(2)){
                northCut =true;
@@ -273,21 +274,21 @@ public:
                southCut = true;
            }
            if(hasNbrAtLabel(0)){
-                return _source ? 1+ nbrAtLabel(0).cutPortal(false) : nbrAtLabel(0).cutPortal(false);
+                current += nbrAtLabel(0).cutPortal(false);
            }
        }
-       else{
+       else {
            if(hasNbrAtLabel(0) && _source){
-               return 1 + nbrAtLabel(0).cutPortal(false);
+               current += nbrAtLabel(0).cutPortal(false);
            }
            else if(hasNbrAtLabel(0)){
-               return nbrAtLabel(0).cutPortal(true);
+               current += nbrAtLabel(0).cutPortal(true);
            }
-           return _source ? 1 : 0;
-
        }
-
-
+       if (_source) {
+           return current + 1;
+       }
+       return current;
     }
 
 
