@@ -52,15 +52,15 @@ unsigned int getColor(int value, int limit) {
 
 PortalGraphParticle::PortalGraphParticle(const Node &head,
                                          const int orientation,
-                                         const bool isLeader,
+                                         const bool isSource,
                                          AmoebotSystem &system)
     : AmoebotParticle(head, -1, orientation, system)
 {
-    _leader = isLeader;
+    _source = isSource;
 
-    _distanceSet[X] = isLeader;
-    _distanceSet[Y] = isLeader;
-    _distanceSet[Z] = isLeader;
+    _distanceSet[X] = isSource;
+    _distanceSet[Y] = isSource;
+    _distanceSet[Z] = isSource;
 
     setPortalDistanceFromRoot(X, 0);
     setPortalDistanceFromRoot(Y, 0);
@@ -82,16 +82,11 @@ void PortalGraphParticle::activate()
 }
 
 void PortalGraphParticle::prune() {
-    /*if (!_leader) { Ez az eredeti, demo után visszaállítani
-         return;
-    }
-    startEulerTour(X);
-    */
-    if (!_leader && !eulerDone) {
+    if (!_source && !eulerDone) {
         return;
-    } else if (!_leader && eulerDone && !visited) {
+    } else if (!_source && eulerDone && !visited) {
         noTargetinPath();
-    } else if (_leader) {
+    } else if (_source) {
         startEulerTour(X);
         noTargetinPath();
     }
@@ -176,7 +171,7 @@ void PortalGraphParticle::calculatePortalDistance() {
 }
 
 void PortalGraphParticle::chooseParent() {
-    if (_leader || !_neighboursSet || !neighboursFinished() || parent != NONE) {
+    if (_source || !_neighboursSet || !neighboursFinished() || parent != NONE) {
         return;
     }
     // For visualization only
@@ -204,7 +199,7 @@ PortalGraphParticle& PortalGraphParticle::nbrAtLabel(int label) const {
 
 int PortalGraphParticle::headMarkColor() const
 {
-    if (_leader) {
+    if (_source) {
         return 0x0000FF;
     } else if (isTarget && numberOfTargets < numberOfParticles - 1) {
         return 0xFF10F0;

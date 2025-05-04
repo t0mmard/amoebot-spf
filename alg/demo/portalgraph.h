@@ -127,7 +127,7 @@ public:
         for (int i = 0; i < system.size() - 1; i++) {
             const Particle& p = system.at(i);
             auto pgp = dynamic_cast<PortalGraphParticle&>(const_cast<Particle&> (p));
-            done = done && (pgp.parent != -1 || pgp._leader);
+            done = done && (pgp.parent != -1 || pgp._source);
         }
         return done;
     }
@@ -337,7 +337,7 @@ public:
 
     }
 
-    PortalGraphParticle(const Node& head, const int orientation, const bool _leader, AmoebotSystem& system);
+    PortalGraphParticle(const Node& head, const int orientation, const bool _source, AmoebotSystem& system);
     void activate() override;
 
     int headMarkColor() const override;
@@ -361,7 +361,7 @@ protected:
 private:
     friend class PortalGraphSystem;
 
-    bool _leader; //the leader / root amoebot
+    bool _source; // root amoebot
     bool _neighboursSet = false; //has gone through distance propagation
 
     int inedge[6] = {-1,-1,-1,-1,-1,-1};
@@ -379,7 +379,7 @@ private:
     void prune();
     void createPortalGraph(Axis axis);
     void initializePortalGraph();
-    Direction chooseClosestToLeader(std::vector<Direction>);
+    Direction chooseClosestToSource(std::vector<Direction>);
 
     int _headMarkDir = -1;
     Direction parent = NONE;
