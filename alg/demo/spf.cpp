@@ -13,7 +13,7 @@ int numberOfParticles = 0;
 int numberOfTargets = 0;
 int numberOfSources = 0;
 int numberOfCuts = 0;
-int currentId = 0;
+int currentId = 1;
 
 
 //helper functions
@@ -111,16 +111,23 @@ void ShortestPathForestParticle::activate()
            }
        }
        //ütemezés
-       if(cutId != -1 && !hasNbrAtLabel(3) && !cutDone){
+       if(portalId != -1 && !hasNbrAtLabel(3) && !cutDone){
             numberOfCuts += cutPortal(true);
        }
 
-       if(numberOfCuts == numberOfSources && !regionSet && cutId  != -1){
-          if((!hasNbrAtLabel(3) || southCut || northCut)){
+       if(numberOfCuts == numberOfSources && !regionSplitVisited && portalId  != -1 && _source){
+           PropagationMessage msg = {
+               .regionId = portalId,
+               .sourcesSoFar = 1,
+               .originY = head.y,
+               .originPortalId = portalId
+           };
+           receiveMessage(msg);
+          /*if((!hasNbrAtLabel(3) || southCut || northCut)){
             setRegion(true,cutId, true);
             setRegion(false,cutId + 1, true);
           }
-          regionSet = true;
+          regionSet = true;*/
        }
     }
 }
@@ -247,8 +254,8 @@ int ShortestPathForestParticle::headMarkColor() const
         return 0x0000FF;
     }
 
-    if (id[0] != -1) {
-        return getColorFromID(id[0]);
+    if (regionId != -1) {
+        return getColorFromID(regionId);
     }
     return -1;
     /*else if (isTarget && numberOfTargets < numberOfParticles - 1) {
@@ -333,7 +340,7 @@ QString ShortestPathForestParticle::inspectionText() const
     text += "\n";
 
     text += "Has Source in portal: ";
-    text += QString::number(cutId);
+    text += QString::number(portalId);
     text += "\n";
     text += "\n";
 
@@ -348,16 +355,22 @@ QString ShortestPathForestParticle::inspectionText() const
     text += "\n";
 
 
-    text += "Region ids: ";
+    text += "Region id: ";
 
-    QString strList3;
+    text += QString::number(regionId);
+    text += "\n";
+
+    text += "Region splitter visited: ";
+
+    text += QString::number(regionSplitVisited);
+    /*QString strList3;
     for (int i = 0; i < 3; ++i) {
         strList3 += QString::number(id[i]);
         strList3 += ", ";
     }
     text += strList3;
     text += "\n";
-    text += "\n";
+    text += "\n";*/
 
     return text;
 }

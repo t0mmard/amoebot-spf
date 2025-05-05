@@ -61,6 +61,13 @@ const std::map<Axis, AxisData> axisMap = {
      }}
 };
 
+struct PropagationMessage {
+    int regionId;
+    int sourcesSoFar;
+    int originY; // used for slicing constraint
+    int originPortalId;
+};
+
 class ShortestPathForestParticle : public AmoebotParticle {
 public:
     std::string groupId[2];
@@ -249,16 +256,16 @@ public:
     }
 
     void setHasSourceOnPortal(int value){
-        cutId = value;
+        portalId = value;
     }
 
     bool sendSignal(int id){
-        if (cutId != -1) return false;
-        cutId = id;
-        if(hasNbrAtLabel(0) && nbrAtLabel(0).cutId == -1){
+        if (portalId != -1) return false;
+        portalId = id;
+        if(hasNbrAtLabel(0) && nbrAtLabel(0).portalId == -1){
             nbrAtLabel(0).sendSignal(id);
         }
-        if(hasNbrAtLabel(3) && nbrAtLabel(3).cutId == -1){
+        if(hasNbrAtLabel(3) && nbrAtLabel(3).portalId == -1){
             nbrAtLabel(3).sendSignal(id);
         }
         return true;
@@ -293,7 +300,7 @@ public:
        return current;
     }
 
-    void setRegion(bool north,int originalCutId, bool starting){ //észak vagy nyugat
+    /*void setRegion(bool north,int originalCutId, bool starting){ //észak vagy nyugat
         int currentId = -1;
         for(int i =0;i<3;i++){
             if ((id[0] != -1 && cutId == -1) ||
@@ -331,6 +338,41 @@ public:
                 if(hasNbrAtLabel(j)){
                     nbrAtLabel(j).setRegion(north, originalCutId, false);
                 }
+            }
+        }
+    }*/
+
+    void receiveMessage(const PropagationMessage& msg) {
+        if (regionSplitVisited || regionId != -1 || (portalId != msg.originPortalId && portalId != -1))
+            return;
+
+        /*int HORIZONTAL_LIMIT = 5;
+
+        int verticalDist = abs(head.y - msg.originY);
+        if (verticalDist > HORIZONTAL_LIMIT)
+            return;*/
+
+        int sourcesInRegion = msg.sourcesSoFar + (_source ? 1 : 0);
+        if (sourcesInRegion > 2)
+            return;
+
+        regionId = msg.regionId;
+        regionSplitVisited = true;
+
+        PropagationMessage nextMsg = {
+            msg.regionId,
+            sourcesInRegion,
+            msg.originY,
+            msg.originPortalId
+        };
+
+        propagate(nextMsg);
+    }
+
+    void propagate(const PropagationMessage& msg) {
+        for (int i = 0; i < 6; ++i) {
+            if (hasNbrAtLabel(i)) {
+                nbrAtLabel(i).receiveMessage(msg);
             }
         }
     }
@@ -435,11 +477,13 @@ public:
     bool isTarget = false;
     bool visited = false;
     bool isTargetused = false;
-    int cutId = -1;
+    int portalId = -1;
     bool northCut = false;
     bool southCut = false;
     bool cutDone = false;
+
     bool regionSet = false;
+    bool regionSplitVisited = false;
 
     // Returns the string to be displayed when this particle is inspected; used to
     // snapshot the current values of this particle's memory at runtime.
@@ -459,7 +503,8 @@ private:
 
     int inedge[6] = {-1,-1,-1,-1,-1,-1};
     int outedge[6] = {-1,-1,-1,-1,-1,-1};
-    int id[3] = {-1,-1,-1};
+    //int id[3] = {-1,-1,-1};
+    int regionId = -1;
 
     ShortestPathForestParticle* propParentY;
     int propDistanceFromparentY = -1;
