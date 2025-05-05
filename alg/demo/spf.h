@@ -61,7 +61,7 @@ const std::map<Axis, AxisData> axisMap = {
      }}
 };
 
-struct PropagationMessage {
+struct SplitPropagationMessage {
     int regionId;
     int sourcesSoFar;
     int originY; // used for slicing constraint
@@ -107,8 +107,29 @@ public:
         return abs(_portalDistanceFromRoot.at(axis) - given.getPortalDistanceFromRoot(axis));
     }
 
-    std::vector<Direction> getPortalDirections(Axis axis) const {
+    const std::vector<Direction>& getPortalDirections(Axis axis) const {
         return _portalDirections.at(axis);
+    }
+
+    void clearPortalDirections() {
+        _portalDirections.at(X).clear();
+        _distanceSet[X] = false;
+        _portalDirections.at(Y).clear();
+        _distanceSet[Y] = false;
+        _portalDirections.at(Z).clear();
+        _distanceSet[Z] = false;
+    }
+
+    bool portalsDoneInRegion(int regionId) {
+        bool done = true;
+        for (int i = 0; i < system.size() - 1; i++) {
+            const Particle& p = system.at(i);
+            auto pgp = dynamic_cast<ShortestPathForestParticle&>(const_cast<Particle&> (p));
+            if (pgp.regionId == regionId) {
+                done = done && pgp.getPortalDirections(X).size() != 0 && pgp.getPortalDirections(Y).size() != 0 && pgp.getPortalDirections(Z).size() != 0;
+            }
+        }
+        return done;
     }
 
     void pushPortalDirections(Axis axis, Direction dir) {
@@ -166,7 +187,7 @@ public:
     bool neighboursFinished() const {
         bool result = true;
         for (int dir = EAST; dir <= SOUTHEAST; dir += 1) {
-            if (hasNbrAtLabel(dir)) {
+            if (hasNbrAtLabel(dir) && nbrAtLabel(dir).regionId == regionId) {
                 result = result && nbrAtLabel(dir).distancesSet();
             }
         }
@@ -342,15 +363,9 @@ public:
         }
     }*/
 
-    void receiveMessage(const PropagationMessage& msg) {
+    void splitRegion(const SplitPropagationMessage& msg) {
         if (regionSplitVisited || regionId != -1 || (portalId != msg.originPortalId && portalId != -1))
             return;
-
-        /*int HORIZONTAL_LIMIT = 5;
-
-        int verticalDist = abs(head.y - msg.originY);
-        if (verticalDist > HORIZONTAL_LIMIT)
-            return;*/
 
         int sourcesInRegion = msg.sourcesSoFar + (_source ? 1 : 0);
         if (sourcesInRegion > 2)
@@ -359,20 +374,50 @@ public:
         regionId = msg.regionId;
         regionSplitVisited = true;
 
-        PropagationMessage nextMsg = {
+        SplitPropagationMessage nextMsg = {
             msg.regionId,
             sourcesInRegion,
             msg.originY,
             msg.originPortalId
         };
 
-        propagate(nextMsg);
+        propagateRegionSplit(nextMsg);
     }
 
-    void propagate(const PropagationMessage& msg) {
+    void propagateRegionSplit(const SplitPropagationMessage& msg) {
         for (int i = 0; i < 6; ++i) {
             if (hasNbrAtLabel(i)) {
-                nbrAtLabel(i).receiveMessage(msg);
+                nbrAtLabel(i).splitRegion(msg);
+            }
+        }
+    }
+
+    void startPortalDistanceInRegion() {
+        if (distancesSet())
+            return;
+
+        propagateCalculateDistanceInRegion(X, 0);
+        propagateCalculateDistanceInRegion(Y, 0);
+        propagateCalculateDistanceInRegion(Z, 0);
+
+    }
+
+    void propagateCalculateDistanceInRegion(Axis axis, int distance) {
+        if (getPortalDistanceFromRoot(axis) != -1) return;
+
+        setDistanceSet(axis, true);
+        setPortalDistanceFromRoot(axis, distance);
+        AxisData axisData = axisMap.at(axis);
+        auto axes = axisData.axis;
+        const auto& portalDirs = getPortalDirections(axis);
+        for (auto dir: portalDirs) {
+            if (std::find(axes.begin(), axes.end(), dir) != axes.end()) {
+                nbrAtLabel(dir).propagateCalculateDistanceInRegion(axis, distance);
+            }
+        }
+        for (auto dir: portalDirs) {
+            if (std::find(axes.begin(), axes.end(), dir) == axes.end()) {
+                nbrAtLabel(dir).propagateCalculateDistanceInRegion(axis, distance + 1);
             }
         }
     }
@@ -484,6 +529,7 @@ public:
 
     bool regionSet = false;
     bool regionSplitVisited = false;
+    bool regionPortalCalculated = false;
 
     // Returns the string to be displayed when this particle is inspected; used to
     // snapshot the current values of this particle's memory at runtime.
@@ -492,14 +538,17 @@ public:
 protected:
     // Member variables.
     //They can contain the parallel connections as well
-    bool portalSet = false;
     bool eulerDone = false;
 
 private:
     friend class ShortestPathForestSystem;
 
     bool _source; // root amoebot
-    bool _neighboursSet = false; //has gone through distance propagation
+    bool _neighboursSet = false; //has gone through distance propagation single
+
+    bool xDistanceSet = false;
+    bool yDistanceSet = false;
+    bool zDistanceSet = false;
 
     int inedge[6] = {-1,-1,-1,-1,-1,-1};
     int outedge[6] = {-1,-1,-1,-1,-1,-1};
@@ -517,7 +566,8 @@ private:
     void chooseParent();
     void prune();
     void createPortalGraph(Axis axis);
-    void initializePortalGraph();
+    void initializePortalGraph(bool clear, int regionId);
+    void removePortalGraph(int regionId);
     Direction chooseClosestToSource(std::vector<Direction>);
 
     int _headMarkDir = -1;

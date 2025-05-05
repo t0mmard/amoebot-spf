@@ -81,13 +81,13 @@ ShortestPathForestParticle::ShortestPathForestParticle(const Node &head,
 {
     _source = isSource;
 
-    _distanceSet[X] = isSource;
-    _distanceSet[Y] = isSource;
-    _distanceSet[Z] = isSource;
+    _distanceSet[X] = isSource && numberOfSources == 1;
+    _distanceSet[Y] = isSource && numberOfSources == 1;
+    _distanceSet[Z] = isSource && numberOfSources == 1;
 
-    setPortalDistanceFromRoot(X, 0);
-    setPortalDistanceFromRoot(Y, 0);
-    setPortalDistanceFromRoot(Z, 0);
+    setPortalDistanceFromRoot(X, -1);
+    setPortalDistanceFromRoot(Y, -1);
+    setPortalDistanceFromRoot(Z, -1);
 
     _portalDirections[X] = std::vector<Direction>();
     _portalDirections[Y] = std::vector<Direction>();
@@ -97,38 +97,39 @@ ShortestPathForestParticle::ShortestPathForestParticle(const Node &head,
 
 void ShortestPathForestParticle::activate()
 {
-    if (numberOfSources == 1) {
-        initializePortalGraph();
+    initializePortalGraph(false, regionId);
+    /*if (numberOfSources == 1) {
         calculatePortalDistance();
         chooseParent();
 
         prune();
-    } else {
-        initializePortalGraph();
+    } else*/ {
        if(_source){
            if (sendSignal(currentId)) {
                currentId += 2;
            }
        }
-       //ütemezés
        if(portalId != -1 && !hasNbrAtLabel(3) && !cutDone){
             numberOfCuts += cutPortal(true);
        }
 
        if(numberOfCuts == numberOfSources && !regionSplitVisited && portalId  != -1 && _source){
-           PropagationMessage msg = {
+           SplitPropagationMessage msg = {
                .regionId = portalId,
                .sourcesSoFar = 1,
                .originY = head.y,
                .originPortalId = portalId
            };
-           receiveMessage(msg);
-          /*if((!hasNbrAtLabel(3) || southCut || northCut)){
-            setRegion(true,cutId, true);
-            setRegion(false,cutId + 1, true);
-          }
-          regionSet = true;*/
+           splitRegion(msg);
        }
+
+       if (regionSplitVisited && _source) {
+           initializePortalGraph(true, regionId);
+           if (portalsDoneInRegion(regionId)) {
+               startPortalDistanceInRegion();
+           }
+       }
+       chooseParent();
     }
 }
 
@@ -143,23 +144,38 @@ void ShortestPathForestParticle::prune() {
     }
 }
 
-
-void ShortestPathForestParticle::initializePortalGraph() {
-    if (getPortalDirections(Axis::X).size() != 0) {
+void ShortestPathForestParticle::removePortalGraph(int regionId) {
+    if (getPortalDirections(X).size() == 0) {
         return;
+    }
+    clearPortalDirections();
+    for (int i = 0; i < 6; i++) {
+        if (hasNbrAtLabel(i) && nbrAtLabel(i).regionId == regionId) {
+            nbrAtLabel(i).removePortalGraph(regionId);
+        }
+    }
+}
+
+
+void ShortestPathForestParticle::initializePortalGraph(bool clear, int regionId) {
+    if(clear && !regionPortalCalculated) {
+        removePortalGraph(regionId);
+        regionPortalCalculated = true;
     }
     for (int axis = X; axis <= Z; axis += 1) {
         createPortalGraph(static_cast<Axis>(axis));
     }
-    portalSet = true;
 }
 
 void ShortestPathForestParticle::createPortalGraph(Axis axis) {
+    if (getPortalDirections(axis).size() != 0) {
+        return;
+    }
     AxisData axisData = axisMap.at(axis);
     //add main axis
     for(int i = 0; i< 2; ++i) {
         Direction dir = axisData.axis[i];
-        if(hasNbrAtLabel(dir)) {
+        if(hasNbrAtLabel(dir) && nbrAtLabel(dir).regionId == regionId) {
             pushPortalDirections(axis, dir);
         }
     }
@@ -167,10 +183,10 @@ void ShortestPathForestParticle::createPortalGraph(Axis axis) {
     //return if there is an amoebot in the boundaryDirection (no parallel connection needed)
     if (neighbourExists(axis, axisData.boundaryDirection)) {
         //we check if the parallel amoebots are on the boundary, if so we connect them
-        if (!hasNbrAtLabel(axisData.sideA[0]) && hasNbrAtLabel(axisData.sideA[1])) {
+        if (!hasNbrAtLabel(axisData.sideA[0]) && hasNbrAtLabel(axisData.sideA[1]) && nbrAtLabel(axisData.sideA[1]).regionId == regionId) {
             pushPortalDirections(axis, axisData.sideA[1]);
         }
-        if (!hasNbrAtLabel(axisData.sideB[0]) && hasNbrAtLabel(axisData.sideB[1])) {
+        if (!hasNbrAtLabel(axisData.sideB[0]) && hasNbrAtLabel(axisData.sideB[1]) && nbrAtLabel(axisData.sideB[1]).regionId == regionId) {
             pushPortalDirections(axis, axisData.sideB[1]);
         }
         return;
@@ -180,7 +196,7 @@ void ShortestPathForestParticle::createPortalGraph(Axis axis) {
     //sideA
     for(int i = 0; i< 2; ++i) {
         Direction dir = axisData.sideA[i];
-        if(hasNbrAtLabel(dir)) {
+        if(hasNbrAtLabel(dir) && nbrAtLabel(dir).regionId == regionId) {
             pushPortalDirections(axis, dir);
             break;
         }
@@ -188,9 +204,15 @@ void ShortestPathForestParticle::createPortalGraph(Axis axis) {
     //sideB
     for(int i = 0; i< 2; ++i) {
         Direction dir = axisData.sideB[i];
-        if(hasNbrAtLabel(dir)) {
+        if(hasNbrAtLabel(dir) && nbrAtLabel(dir).regionId == regionId) {
             pushPortalDirections(axis, dir);
             break;
+        }
+    }
+
+    for (int i = 0; i < 6; ++i) {
+        if(hasNbrAtLabel(i)) {
+            nbrAtLabel(i).createPortalGraph(axis);
         }
     }
 }
@@ -222,7 +244,7 @@ void ShortestPathForestParticle::calculatePortalDistance() {
 }
 
 void ShortestPathForestParticle::chooseParent() {
-    if (_source || !_neighboursSet || !neighboursFinished() || parent != NONE) {
+    if (_source || !neighboursFinished() || !distancesSet() || parent != NONE) {
         return;
     }
     // For visualization only
@@ -230,7 +252,7 @@ void ShortestPathForestParticle::chooseParent() {
     if (distance > maxDistance) maxDistance = distance;
     //For visualization only
     for (int dir = EAST; dir <= SOUTHEAST; dir += 1) {
-        if (hasNbrAtLabel(dir)) {
+        if (hasNbrAtLabel(dir) && nbrAtLabel(dir).regionId == regionId) {
             int candidate = (getPortalDistanceFromRoot(X) - nbrAtLabel(dir).getPortalDistanceFromRoot(X))
                     + (getPortalDistanceFromRoot(Y) - nbrAtLabel(dir).getPortalDistanceFromRoot(Y))
                     + (getPortalDistanceFromRoot(Z) - nbrAtLabel(dir).getPortalDistanceFromRoot(Z));
@@ -252,9 +274,10 @@ int ShortestPathForestParticle::headMarkColor() const
 {
     if (_source) {
         return 0x0000FF;
+    } else if (isTarget) {
+        return 0xFF10F0;
     }
-
-    if (regionId != -1) {
+    else if (regionId != -1) {
         return getColorFromID(regionId);
     }
     return -1;
