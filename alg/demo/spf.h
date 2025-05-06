@@ -120,9 +120,42 @@ public:
         _distanceSet[Z] = false;
     }
 
+    bool parentsChosen() {
+        bool done = true;
+        for (unsigned int i = 0; i < system.size() - 1; i++) {
+            const Particle& p = system.at(i);
+            auto pgp = dynamic_cast<ShortestPathForestParticle&>(const_cast<Particle&> (p));
+            done = done && (pgp.parent != NONE || pgp._source);
+        }
+        return done;
+    }
+
+    bool portalsCleared() {
+        bool done = true;
+        for (unsigned int i = 0; i < (system.size() - 1); i++) {
+            const Particle& p = system.at(i);
+            auto pgp = dynamic_cast<ShortestPathForestParticle&>(const_cast<Particle&> (p));
+            done = done && pgp._portalDirections.at(X).size() == 0 && pgp._portalDirections.at(Y).size() == 0 && pgp._portalDirections.at(Z).size() == 0;
+        }
+        return done;
+    }
+
+    void clearSecondaryPortalDistance() {
+        if (_secondaryPortalDistanceFromRoot.at(X) == -1 && _secondaryPortalDistanceFromRoot.at(Z) == -1 && _secondaryPortalDistanceFromRoot.at(Z) == -1) return;
+        _secondaryPortalDistanceFromRoot[X] = -1;
+        _secondaryPortalDistanceFromRoot[Y] = -1;
+        _secondaryPortalDistanceFromRoot[Z] = -1;
+        newParentChosen = false;
+        for (int i = 0; i < 6; i++) {
+            if(hasNbrAtLabel(i)) {
+                nbrAtLabel(i).clearSecondaryPortalDistance();
+            }
+        }
+    }
+
     bool portalsDoneInRegion(int regionId) {
         bool done = true;
-        for (int i = 0; i < system.size() - 1; i++) {
+        for (unsigned int i = 0; i < system.size() - 1; i++) {
             const Particle& p = system.at(i);
             auto pgp = dynamic_cast<ShortestPathForestParticle&>(const_cast<Particle&> (p));
             if (pgp.regionId == regionId) {
@@ -133,6 +166,7 @@ public:
     }
 
     void pushPortalDirections(Axis axis, Direction dir) {
+        if (std::find(_portalDirections[axis].begin(), _portalDirections[axis].end(), dir) != _portalDirections[axis].end()) return;
         _portalDirections[axis].push_back(dir);
     }
 
@@ -184,11 +218,95 @@ public:
         return result;
     }
 
+    void initializePortalGraphG() {
+        for (int axis = X; axis <= Z; axis += 1) {
+            createPortalGraphG(static_cast<Axis>(axis));
+        }
+    }
+
+    void createPortalGraphG(Axis axis) {
+        if (_portalDirections[axis].size() != 0) {
+            return;
+        }
+        AxisData axisData = axisMap.at(axis);
+        //add main axis
+        for(int i = 0; i< 2; ++i) {
+            Direction dir = axisData.axis[i];
+            if(hasNbrAtLabel(dir)) {
+                pushPortalDirections(axis, dir);
+            }
+        }
+
+        //return if there is an amoebot in the boundaryDirection (no parallel connection needed)
+        //if (!hasNbrAtLabel(axisData.boundaryDirection)) {//neighbourExists(axis, axisData.boundaryDirection)) {
+            //we check if the parallel amoebots are on the boundary, if so we connect them
+        if (!hasNbrAtLabel(axisData.sideA[0]) && hasNbrAtLabel(axisData.sideA[1])) {
+            pushPortalDirections(axis, axisData.sideA[1]);
+        }
+        if (!hasNbrAtLabel(axisData.sideB[0]) && hasNbrAtLabel(axisData.sideB[1])) {
+            pushPortalDirections(axis, axisData.sideB[1]);
+        }
+        //}
+        if (!hasNbrAtLabel(axisData.boundaryDirection)) {
+            if (hasNbrAtLabel(axisData.sideA[0])) {
+                pushPortalDirections(axis, axisData.sideA[0]);
+            } else if (hasNbrAtLabel(axisData.sideA[1])) {
+                pushPortalDirections(axis, axisData.sideA[1]);
+            }
+
+            if (hasNbrAtLabel(axisData.sideB[0])) {
+                pushPortalDirections(axis, axisData.sideB[0]);
+            } else if (hasNbrAtLabel(axisData.sideB[1])) {
+                pushPortalDirections(axis, axisData.sideB[1]);
+            }
+        }
+
+        //add the western, northeastern, southeastern most parallel amoebots on both side of the axis
+        //sideA
+        /*if (!aSet){
+            for(int i = 0; i< 2; ++i) {
+                Direction dir = axisData.sideA[i];
+                if(hasNbrAtLabel(dir)) {
+                    pushPortalDirections(axis, dir);
+                    break;
+                }
+            }
+        }
+        //sideB
+        if (!bSet){
+            for(int i = 0; i< 2; ++i) {
+                Direction dir = axisData.sideB[i];
+                if(hasNbrAtLabel(dir)) {
+                    pushPortalDirections(axis, dir);
+                    break;
+                }
+            }
+        }*/
+
+        for (int i = 0; i < 6; ++i) {
+            if(hasNbrAtLabel(i)) {
+                nbrAtLabel(i).createPortalGraphG(axis);
+            }
+        }
+    }
+
+    void removePortalGraphG() {
+        if (getPortalDirections(X).size() == 0 && getPortalDirections(Y).size() == 0 && getPortalDirections(Z).size() == 0) {
+            return;
+        }
+        clearPortalDirections();
+        for (int i = 0; i < 6; i++) {
+            if (hasNbrAtLabel(i)) {
+                nbrAtLabel(i).removePortalGraphG();
+            }
+        }
+    }
+
     bool neighboursFinished() const {
         bool result = true;
         for (int dir = EAST; dir <= SOUTHEAST; dir += 1) {
-            if (hasNbrAtLabel(dir) && nbrAtLabel(dir).regionId == regionId) {
-                result = result && nbrAtLabel(dir).distancesSet();
+            if (hasNbrAtLabel(dir)) {
+                result = result && (nbrAtLabel(dir)._portalDistanceFromRoot.at(X) != -1 && nbrAtLabel(dir)._portalDistanceFromRoot.at(Y) != -1 && nbrAtLabel(dir)._portalDistanceFromRoot.at(Z) != -1);
             }
         }
         return result;
@@ -228,8 +346,8 @@ public:
         return result;
     }
 
-    void startEulerTour(Axis axis){
-        if(eulerDone || !neighboursDoneParentChoice()){
+    void startEulerTour(){
+        if(eulerDone){
             return;
         }
         eulerDone = true;
@@ -244,11 +362,10 @@ public:
         }
         setOutedge(direction,0);
         nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
-        nbrAtLabel(direction).eulerTour(0, nbrDirection,axis);
-        //rootPruning(); //Ezt vissza kell állítani demo után
+        nbrAtLabel(direction).eulerTour(0, nbrDirection);
     }
 
-    void eulerTour(int value, Direction movedirection, Axis axis){
+    void eulerTour(int value, Direction movedirection){
         setInedge(movedirection, value);
         eulerDone = true; //Ez most csak vizhez kell, majd törölni
         // megkeressük a helyes irányt = direction
@@ -266,14 +383,14 @@ public:
         if (!directionFound) {
             return;
         }
-        if(isTarget && !isTargetused){
+        if((isTarget && !isTargetused) || (_source && !isTargetused)){
             value += 1;
             isTargetused = true;
         }
         setOutedge(direction, value);
         Direction nbrDirection;
         nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
-        nbrAtLabel(direction).eulerTour(value, nbrDirection, axis);
+        nbrAtLabel(direction).eulerTour(value, nbrDirection);
     }
 
     void setHasSourceOnPortal(int value){
@@ -362,6 +479,35 @@ public:
             }
         }
     }*/
+    void chooseNewParent() {
+        if (newParentChosen) return;
+        newParentChosen = true;
+        int distance = (getPortalDistanceFromRoot(X) + getPortalDistanceFromRoot(Y) + getPortalDistanceFromRoot(Z)) / 2;
+        int secondaryDistance = (_secondaryPortalDistanceFromRoot.at(X) + _secondaryPortalDistanceFromRoot.at(Y) + _secondaryPortalDistanceFromRoot.at(Z)) / 2;
+        if (secondaryDistance < distance){
+            /*if (distance > maxDistance) maxDistance = distance;*/
+            //For visualization only
+            for (int dir = EAST; dir <= SOUTHEAST; dir += 1) {
+                if (hasNbrAtLabel(dir) && !_source) {
+                    int candidate = (_secondaryPortalDistanceFromRoot.at(X) - nbrAtLabel(dir)._secondaryPortalDistanceFromRoot.at(X))
+                            + (_secondaryPortalDistanceFromRoot.at(Y) - nbrAtLabel(dir)._secondaryPortalDistanceFromRoot.at(Y))
+                            + (_secondaryPortalDistanceFromRoot.at(Z) - nbrAtLabel(dir)._secondaryPortalDistanceFromRoot.at(Z));
+                    if (candidate == 2) {
+                        _portalDistanceFromRoot[X] = _secondaryPortalDistanceFromRoot.at(X);
+                        _portalDistanceFromRoot[Y] = _secondaryPortalDistanceFromRoot.at(Y);
+                        _portalDistanceFromRoot[Z] = _secondaryPortalDistanceFromRoot.at(Z);
+                        parent = static_cast<Direction>(dir);
+                        _headMarkDir = dir;
+                    }
+                }
+            }
+        }
+        for (int i = 0; i<6; i++) {
+            if (hasNbrAtLabel(i)) {
+                nbrAtLabel(i).chooseNewParent();
+            }
+        }
+    }
 
     void splitRegion(const SplitPropagationMessage& msg) {
         if (regionSplitVisited || regionId != -1 || (portalId != msg.originPortalId && portalId != -1))
@@ -418,6 +564,34 @@ public:
         for (auto dir: portalDirs) {
             if (std::find(axes.begin(), axes.end(), dir) == axes.end()) {
                 nbrAtLabel(dir).propagateCalculateDistanceInRegion(axis, distance + 1);
+            }
+        }
+    }
+
+    void startSecondaryPortalDistanceInRegion() {
+        if (_secondaryPortalDistanceFromRoot.at(X) != -1 && _secondaryPortalDistanceFromRoot.at(Y) != -1 && _secondaryPortalDistanceFromRoot.at(Z) != -1)
+            return;
+        propagateSecondaryCalculateDistanceInRegion(X, 0);
+        propagateSecondaryCalculateDistanceInRegion(Y, 0);
+        propagateSecondaryCalculateDistanceInRegion(Z, 0);
+
+    }
+
+    void propagateSecondaryCalculateDistanceInRegion(Axis axis, int distance) {
+        if (_secondaryPortalDistanceFromRoot.at(axis) != -1) return;
+
+        _secondaryPortalDistanceFromRoot[axis] = distance;
+        AxisData axisData = axisMap.at(axis);
+        auto axes = axisData.axis;
+        const auto& portalDirs = _portalDirections.at(axis);
+        for (auto dir: portalDirs) {
+            if (std::find(axes.begin(), axes.end(), dir) != axes.end()) {
+                nbrAtLabel(dir).propagateSecondaryCalculateDistanceInRegion(axis, distance);
+            }
+        }
+        for (auto dir: portalDirs) {
+            if (std::find(axes.begin(), axes.end(), dir) == axes.end()) {
+                nbrAtLabel(dir).propagateSecondaryCalculateDistanceInRegion(axis, distance + 1);
             }
         }
     }
@@ -531,10 +705,15 @@ public:
     bool regionSplitVisited = false;
     bool regionPortalCalculated = false;
 
+    bool sourceDistanceCalculated = false;
+
+    bool newParentChosen = false;
+
     // Returns the string to be displayed when this particle is inspected; used to
     // snapshot the current values of this particle's memory at runtime.
     QString inspectionText() const override;
 
+    std::map<Axis, int> _secondaryPortalDistanceFromRoot;
 protected:
     // Member variables.
     //They can contain the parallel connections as well
@@ -564,7 +743,7 @@ private:
 
     void calculatePortalDistance();
     void chooseParent();
-    void prune();
+    void prune(int originalRegionId);
     void createPortalGraph(Axis axis);
     void initializePortalGraph(bool clear, int regionId);
     void removePortalGraph(int regionId);

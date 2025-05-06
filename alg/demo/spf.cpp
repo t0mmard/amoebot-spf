@@ -14,6 +14,9 @@ int numberOfTargets = 0;
 int numberOfSources = 0;
 int numberOfCuts = 0;
 int currentId = 1;
+bool globalPortalDone = false;
+bool clear = false;
+int finalized = 0;
 
 
 //helper functions
@@ -88,6 +91,9 @@ ShortestPathForestParticle::ShortestPathForestParticle(const Node &head,
     setPortalDistanceFromRoot(X, -1);
     setPortalDistanceFromRoot(Y, -1);
     setPortalDistanceFromRoot(Z, -1);
+    _secondaryPortalDistanceFromRoot[X] = -1;
+    _secondaryPortalDistanceFromRoot[Y] = -1;
+    _secondaryPortalDistanceFromRoot[Z] = -1;
 
     _portalDirections[X] = std::vector<Direction>();
     _portalDirections[Y] = std::vector<Direction>();
@@ -97,13 +103,14 @@ ShortestPathForestParticle::ShortestPathForestParticle(const Node &head,
 
 void ShortestPathForestParticle::activate()
 {
-    initializePortalGraph(false, regionId);
     /*if (numberOfSources == 1) {
         calculatePortalDistance();
         chooseParent();
 
         prune();
-    } else*/ {
+    } else*/
+    if (!parentsChosen() && !(finalized == numberOfSources)){
+        initializePortalGraph(false, regionId);
        if(_source){
            if (sendSignal(currentId)) {
                currentId += 2;
@@ -125,27 +132,39 @@ void ShortestPathForestParticle::activate()
 
        if (regionSplitVisited && _source) {
            initializePortalGraph(true, regionId);
-           if (portalsDoneInRegion(regionId)) {
+           if (portalsDoneInRegion(regionId) || (_source && _portalDirections.at(X).size() == 0 && _portalDirections.at(Y).size() == 0 && _portalDirections.at(Z).size() == 0)) {
                startPortalDistanceInRegion();
            }
        }
        chooseParent();
+    } else if (!globalPortalDone && _source){
+        removePortalGraphG();
+        initializePortalGraphG();
+        globalPortalDone = true;
+    } else if (_source && !sourceDistanceCalculated) {
+        clearSecondaryPortalDistance();
+        startSecondaryPortalDistanceInRegion();
+        chooseNewParent();
+        sourceDistanceCalculated = true;
+        finalized++;
+    } else if (finalized == numberOfSources) {
+        prune(regionId);
     }
 }
 
-void ShortestPathForestParticle::prune() {
+void ShortestPathForestParticle::prune(int originalRegionId) {
     if (!_source && !eulerDone) {
         return;
-    } else if (!_source && eulerDone && !visited) {
+    } else if ((!_source || (_source && (regionId != originalRegionId))) && eulerDone && !visited) {
         noTargetinPath();
     } else if (_source) {
-        startEulerTour(X);
+        startEulerTour();
         noTargetinPath();
     }
 }
 
 void ShortestPathForestParticle::removePortalGraph(int regionId) {
-    if (getPortalDirections(X).size() == 0) {
+    if (_portalDirections.at(X).size() == 0 && _portalDirections.at(Y).size() == 0 && _portalDirections.at(Z).size() == 0) {
         return;
     }
     clearPortalDirections();
@@ -244,7 +263,7 @@ void ShortestPathForestParticle::calculatePortalDistance() {
 }
 
 void ShortestPathForestParticle::chooseParent() {
-    if (_source || !neighboursFinished() || !distancesSet() || parent != NONE) {
+    if (_source || !neighboursFinished() || !(_portalDistanceFromRoot.at(X) != -1 && _portalDistanceFromRoot.at(Y) != -1 && _portalDistanceFromRoot.at(Z) != -1) || parent != NONE) {
         return;
     }
     // For visualization only
@@ -276,6 +295,8 @@ int ShortestPathForestParticle::headMarkColor() const
         return 0x0000FF;
     } else if (isTarget) {
         return 0xFF10F0;
+    } else if(visited && !connectedAmoebot() && parent != NONE){
+        return 0xA9A9A9;
     }
     else if (regionId != -1) {
         return getColorFromID(regionId);
@@ -334,6 +355,19 @@ QString ShortestPathForestParticle::inspectionText() const
     text += "\n";
     text += "\n";
     text += "Outedge: ";
+
+    text += "secondary X portal distance: ";
+    text += QString::number(_secondaryPortalDistanceFromRoot.at(X));
+    text += "\n";
+
+    text += "secondary Y portal distance: ";
+    text += QString::number(_secondaryPortalDistanceFromRoot.at(Y));
+    text += "\n";
+
+    text += "secondary Z portal distance: ";
+    text += QString::number(_secondaryPortalDistanceFromRoot.at(Z));
+    text += "\n";
+    text += "\n";
 
 
 
@@ -395,6 +429,11 @@ QString ShortestPathForestParticle::inspectionText() const
     text += "\n";
     text += "\n";*/
 
+    text += "Regionsplitvisited: ";
+
+    text += QString::number(regionSplitVisited);
+    text += "\n";
+
     return text;
 }
 
@@ -431,6 +470,10 @@ ShortestPathForestSystem::ShortestPathForestSystem(int numParticles, int sourceC
     numberOfParticles = numParticles;
     numberOfSources = sourceCount;
     numberOfCuts = 0;
+    globalPortalDone = false;
+    globalPortalDone = false;
+    clear = false;
+    finalized = 0;
     //For visualization only
     std::set<Node> occupied;
     occupied.insert(Node(grid_size/2,grid_size/2 ));
