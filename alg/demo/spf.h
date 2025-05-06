@@ -362,17 +362,22 @@ public:
         }
         setOutedge(direction,0);
         nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
-        nbrAtLabel(direction).eulerTour(0, nbrDirection);
+        std::cout << "startEuler: euler előtt" << std::endl;
+        if (hasNbrAtLabel(direction)) nbrAtLabel(direction).eulerTour(0, nbrDirection);
+        std::cout << "startEuler: euler után" << std::endl;
     }
 
     void eulerTour(int value, Direction movedirection){
+        std::cout << "eulerTour: setInedge előtt" << std::endl;
         setInedge(movedirection, value);
+        std::cout << "eulerTour: setInedge után" << std::endl;
         eulerDone = true; //Ez most csak vizhez kell, majd törölni
         // megkeressük a helyes irányt = direction
         Direction direction;
         int potentialdirection[6]={(movedirection+1) % 6,(movedirection+2) % 6,(movedirection+3) % 6,
                                    (movedirection+4) % 6,(movedirection+5) % 6,movedirection};
         bool directionFound = false;
+        std::cout << "eulerTour: for előtt" << std::endl;
         for(int pot : potentialdirection){
             if (hasNbrAtLabel(pot) && (nbrAtLabel(pot).parent == (pot + 3) % 6 || pot == parent) && getOutedge(pot) == -1){
                 direction =static_cast<Direction>(pot);
@@ -380,6 +385,7 @@ public:
                 break;
             }
         }
+        std::cout << "eulerTour: for előtt" << std::endl;
         if (!directionFound) {
             return;
         }
@@ -387,10 +393,14 @@ public:
             value += 1;
             isTargetused = true;
         }
+        std::cout << "eulerTour: setOutedge előtt" << std::endl;
         setOutedge(direction, value);
+        std::cout << "eulerTour: setOutedge előtt" << std::endl;
         Direction nbrDirection;
         nbrDirection = static_cast<Direction>((static_cast<int>(direction)+3)%6);
+        std::cout << "eulerTour: euler előtt" << std::endl;
         nbrAtLabel(direction).eulerTour(value, nbrDirection);
+        std::cout << "eulerTour: euler után" << std::endl;
     }
 
     void setHasSourceOnPortal(int value){

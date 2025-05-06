@@ -109,16 +109,21 @@ void ShortestPathForestParticle::activate()
 
         prune();
     } else*/
+    std::cout << "start" << std::endl;
     if (!parentsChosen() && !(finalized == numberOfSources)){
+        std::cout << "init" << std::endl;
         initializePortalGraph(false, regionId);
+        std::cout << "init után" << std::endl;
        if(_source){
            if (sendSignal(currentId)) {
                currentId += 2;
            }
        }
+       std::cout << "signal után" << std::endl;
        if(portalId != -1 && !hasNbrAtLabel(3) && !cutDone){
             numberOfCuts += cutPortal(true);
        }
+       std::cout << "cut után" << std::endl;
 
        if(numberOfCuts == numberOfSources && !regionSplitVisited && portalId  != -1 && _source){
            SplitPropagationMessage msg = {
@@ -129,6 +134,7 @@ void ShortestPathForestParticle::activate()
            };
            splitRegion(msg);
        }
+       std::cout << "split után" << std::endl;
 
        if (regionSplitVisited && _source) {
            initializePortalGraph(true, regionId);
@@ -136,30 +142,47 @@ void ShortestPathForestParticle::activate()
                startPortalDistanceInRegion();
            }
        }
+       std::cout << "region calc split után" << std::endl;
        chooseParent();
+       std::cout << "parent után" << std::endl;
     } else if (!globalPortalDone && _source){
+        std::cout << "remove előtt" << std::endl;
         removePortalGraphG();
+        std::cout << "init portal region előtt" << std::endl;
         initializePortalGraphG();
+        std::cout << "init portal region után" << std::endl;
         globalPortalDone = true;
     } else if (_source && !sourceDistanceCalculated) {
+        std::cout << "sec portal distance előtt" << std::endl;
         clearSecondaryPortalDistance();
+        std::cout << "sec portal distance region előtt" << std::endl;
         startSecondaryPortalDistanceInRegion();
+        std::cout << "new parent előtt" << std::endl;
         chooseNewParent();
+        std::cout << "new parent után" << std::endl;
         sourceDistanceCalculated = true;
         finalized++;
     } else if (finalized == numberOfSources) {
+        std::cout << "prune előtt" << std::endl;
         prune(regionId);
+        std::cout << "prune után" << std::endl;
     }
 }
 
 void ShortestPathForestParticle::prune(int originalRegionId) {
+    std::cout << "prune: eleje" << std::endl;
     if (!_source && !eulerDone) {
         return;
     } else if ((!_source || (_source && (regionId != originalRegionId))) && eulerDone && !visited) {
+        std::cout << "prune: if1 no előtt" << std::endl;
         noTargetinPath();
+        std::cout << "prune: if1 no után" << std::endl;
     } else if (_source) {
+        std::cout << "prune: eif startEuler előtt" << std::endl;
         startEulerTour();
+        std::cout << "prune:  eif startEuler után" << std::endl;
         noTargetinPath();
+        std::cout << "prune: eif noTarget után" << std::endl;
     }
 }
 
