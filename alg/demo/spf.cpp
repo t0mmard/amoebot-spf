@@ -137,9 +137,13 @@ void ShortestPathForestParticle::activate()
        std::cout << "split után" << std::endl;
 
        if (regionSplitVisited && _source) {
+           std::cout << "region calc split: init előtt" << std::endl;
            initializePortalGraph(true, regionId);
+           std::cout << "region calc split: init után" << std::endl;
            if (portalsDoneInRegion(regionId) || (_source && _portalDirections.at(X).size() == 0 && _portalDirections.at(Y).size() == 0 && _portalDirections.at(Z).size() == 0)) {
+               std::cout << "region calc split: if startportaldistanceinregion előtt" << std::endl;
                startPortalDistanceInRegion();
+               std::cout << "region calc split: if startportaldistanceinregion után" << std::endl;
            }
        }
        std::cout << "region calc split után" << std::endl;
@@ -201,28 +205,37 @@ void ShortestPathForestParticle::removePortalGraph(int regionId) {
 
 void ShortestPathForestParticle::initializePortalGraph(bool clear, int regionId) {
     if(clear && !regionPortalCalculated) {
+        std::cout << "initializePortalGraph: remove előtt" << std::endl;
         removePortalGraph(regionId);
+        std::cout << "initializePortalGraph: remove után" << std::endl;
         regionPortalCalculated = true;
     }
     for (int axis = X; axis <= Z; axis += 1) {
+        std::cout << "initializePortalGraph: create előtt" << std::endl;
         createPortalGraph(static_cast<Axis>(axis));
+        std::cout << "initializePortalGraph: create után" << std::endl;
     }
 }
 
 void ShortestPathForestParticle::createPortalGraph(Axis axis) {
-    if (getPortalDirections(axis).size() != 0) {
+    std::cout << "createPortalGraph: check előtt" << std::endl;
+    if (_portalDirections.at(axis).size() != 0) {
         return;
     }
+    std::cout << "createPortalGraph: check után" << std::endl;
     AxisData axisData = axisMap.at(axis);
     //add main axis
+    std::cout << "createPortalGraph: for1 előtt" << std::endl;
     for(int i = 0; i< 2; ++i) {
         Direction dir = axisData.axis[i];
         if(hasNbrAtLabel(dir) && nbrAtLabel(dir).regionId == regionId) {
             pushPortalDirections(axis, dir);
         }
     }
+    std::cout << "createPortalGraph: for1 után" << std::endl;
 
     //return if there is an amoebot in the boundaryDirection (no parallel connection needed)
+    std::cout << "createPortalGraph: if előtt" << std::endl;
     if (neighbourExists(axis, axisData.boundaryDirection)) {
         //we check if the parallel amoebots are on the boundary, if so we connect them
         if (!hasNbrAtLabel(axisData.sideA[0]) && hasNbrAtLabel(axisData.sideA[1]) && nbrAtLabel(axisData.sideA[1]).regionId == regionId) {
@@ -233,9 +246,11 @@ void ShortestPathForestParticle::createPortalGraph(Axis axis) {
         }
         return;
     }
+    std::cout << "createPortalGraph: if után" << std::endl;
 
     //add the western, northeastern, southeastern most parallel amoebots on both side of the axis
     //sideA
+    std::cout << "createPortalGraph: for2 előtt" << std::endl;
     for(int i = 0; i< 2; ++i) {
         Direction dir = axisData.sideA[i];
         if(hasNbrAtLabel(dir) && nbrAtLabel(dir).regionId == regionId) {
@@ -243,6 +258,7 @@ void ShortestPathForestParticle::createPortalGraph(Axis axis) {
             break;
         }
     }
+    std::cout << "createPortalGraph: for2 után" << std::endl;
     //sideB
     for(int i = 0; i< 2; ++i) {
         Direction dir = axisData.sideB[i];
@@ -251,12 +267,16 @@ void ShortestPathForestParticle::createPortalGraph(Axis axis) {
             break;
         }
     }
+    std::cout << "createPortalGraph: for3 után" << std::endl;
 
     for (int i = 0; i < 6; ++i) {
-        if(hasNbrAtLabel(i)) {
+        if(hasNbrAtLabel(i) && nbrAtLabel(i).regionId == regionId) {
+            std::cout << "createPortalGraph: propageate i: " << i << " exists: "<< hasNbrAtLabel(i) << std::endl;
             nbrAtLabel(i).createPortalGraph(axis);
+            std::cout << "createPortalGraph: propageate után" << std::endl;
         }
     }
+    std::cout << "createPortalGraph: vége" << std::endl;
 }
 
 
